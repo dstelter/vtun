@@ -76,7 +76,7 @@ struct kword cfg_param[] = {
    { "lzo",      VTUN_LZO }, 
    { "zlib",     VTUN_ZLIB }, 
    { "wait",	 1 },
-   { "kill",	 VTUN_MULTI_KILL },
+   { "killold",	 VTUN_MULTI_KILL },
    { "inetd",	 VTUN_INETD },
    { "stand",	 VTUN_STAND_ALONE },
    { "keep",     VTUN_PERSIST_KEEPIF },
