@@ -140,10 +140,19 @@ extern llist host_list;
 #define VTUN_ENC_BF128CBC	2
 #define VTUN_ENC_BF128CFB	3
 #define VTUN_ENC_BF128OFB	4
-#define VTUN_ENC_AES128ECB	5
-#define VTUN_ENC_AES128CBC	6
-#define VTUN_ENC_AES128CFB	7
-#define VTUN_ENC_AES128OFB	8
+#define VTUN_ENC_BF256ECB	5
+#define VTUN_ENC_BF256CBC	6
+#define VTUN_ENC_BF256CFB	7
+#define VTUN_ENC_BF256OFB	8
+
+#define VTUN_ENC_AES128ECB	9
+#define VTUN_ENC_AES128CBC	10
+#define VTUN_ENC_AES128CFB	11
+#define VTUN_ENC_AES128OFB	12
+#define VTUN_ENC_AES256ECB	13
+#define VTUN_ENC_AES256CBC	14
+#define VTUN_ENC_AES256CFB	15
+#define VTUN_ENC_AES256OFB	16
 
 /* Mask to drop the flags which will be supplied by the server */
 #define VTUN_CLNT_MASK  0xf000
