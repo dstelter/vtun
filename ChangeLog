@@ -1,4 +1,7 @@
 
+3.0.0-pre2:
+	obsoleted linux/tap_dev (mjt)
+	
 3.0.0-pre1:
 	Implementation of Nickolai 'kolya' Zeldovich's mlockall() patch	(bc)
 	Some cleanup with respect to SSL on Apple (dpf)
