@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: cfg_file.y,v 1.1.1.2.2.4 2001/01/10 01:46:29 maxk Exp $
+ * $Id: cfg_file.y,v 1.1.1.2.2.5 2001/06/07 15:36:20 maxk Exp $
  */ 
 
 #include "config.h"
@@ -89,6 +89,7 @@ statement: '\n'
 		  parse_host = &default_host; 
                 }        
     '{' host_options '}' 
+
   | K_HOST      { 
 		  if( !(parse_host = malloc(sizeof(struct vtun_host))) ){
 		     yyerror("No memory for the host");
@@ -108,10 +109,20 @@ statement: '\n'
 		  llist_copy(&default_host.up,&parse_host->up,cp_cmd,NULL);
 		  llist_copy(&default_host.down,&parse_host->down,cp_cmd,NULL);
 
-		  /* Add host to the list */
-		  llist_add(&host_list,(void *)parse_host);
 		}    
-    '{' host_options '}' 
+    '{' host_options '}'
+		{
+		  /* Check if session definition is complete */ 
+		  if (!parse_host->passwd) {
+		  	cfg_error("Ignored incomplete session definition '%s'", parse_host->host);
+			free_host(parse_host, NULL);			
+			free(parse_host);
+		  } else {
+		  	/* Add host to the list */
+		  	llist_add(&host_list, (void *)parse_host);
+		  }
+		}
+
   | K_ERROR	{
 		  cfg_error("Invalid clause '%s'",$1);
 		  YYABORT;
