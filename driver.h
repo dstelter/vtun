@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: driver.h,v 1.1.1.1 2000/03/28 17:19:45 maxk Exp $
+ * $Id: driver.h,v 1.1.1.1.2.1 2000/11/20 07:57:33 maxk Exp $
  */ 
 #ifndef _DRIVER_H
 #define _DRIVER_H
@@ -33,19 +33,21 @@ extern int (*dev_read)(int fd, char *buf, int len);
 extern int (*proto_write)(int fd, char *buf, int len);
 extern int (*proto_read)(int fd, char *buf);
 
-int tun_alloc(char *dev);
+int tun_open(char *dev);
+int tun_close(int fd, char *dev);
 int tun_write(int fd, char *buf, int len);
 int tun_read(int fd, char *buf, int len);
 
-int tap_alloc(char *dev);
+int tap_open(char *dev);
+int tap_close(int fd, char *dev);
 int tap_write(int fd, char *buf, int len);
 int tap_read(int fd, char *buf, int len);
 
-int pty_alloc(char *dev);
+int pty_open(char *dev);
 int pty_write(int fd, char *buf, int len);
 int pty_read(int fd, char *buf, int len);
 
-int pipe_alloc(int *fd);
+int pipe_open(int *fd);
 int pipe_write(int fd, char *buf, int len);
 int pipe_read(int fd, char *buf, int len);
 

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: pty_dev.c,v 1.1.1.1 2000/03/28 17:19:57 maxk Exp $
+ * $Id: pty_dev.c,v 1.1.1.1.2.1 2000/11/20 07:57:33 maxk Exp $
  */ 
 
 #include "config.h"
@@ -36,7 +36,7 @@
  * Allocate pseudo tty, returns master side fd. 
  * Stores slave name in the first arg(must be large enough).
  */  
-int pty_alloc(char *sl_name)
+int pty_open(char *sl_name)
 {
     char ptyname[] = "/dev/ptyXY";
     char ch[] = "pqrstuvwxyz";

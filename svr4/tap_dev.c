@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: tap_dev.c,v 1.1.1.1 2000/03/28 17:19:53 maxk Exp $
+ * $Id: tap_dev.c,v 1.1.1.1.2.1 2000/11/20 07:57:33 maxk Exp $
  */ 
 
 #include "config.h"
@@ -65,7 +65,7 @@
  * Allocate Ether TAP device, returns opened fd. 
  * Stores dev name in the first arg(must be large enough).
  */ 
-int tap_alloc(char *dev)
+int tap_open(char *dev)
 {
     int tap_fd, if_fd, ppa = -1;
     static int ip_fd = 0;
@@ -118,6 +118,11 @@ int tap_alloc(char *dev)
 
     sprintf(dev, "tap%d", ppa);
     return tap_fd;
+}
+
+int tap_close(int fd, char *dev)
+{
+    close(fd);
 }
 
 int tap_write(int fd, char *buf, int len)

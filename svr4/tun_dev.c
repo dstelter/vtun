@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: tun_dev.c,v 1.1.1.1 2000/03/28 17:19:54 maxk Exp $
+ * $Id: tun_dev.c,v 1.2.2.1 2000/11/20 07:57:33 maxk Exp $
  */ 
 
 #include "config.h"
@@ -61,14 +61,16 @@
 #include "vtun.h"
 #include "lib.h"
 
+static int ip_fd = -1;
+
 /* 
  * Allocate TUN device, returns opened fd. 
  * Stores dev name in the first arg(must be large enough).
  */  
-int tun_alloc(char *dev)
+int tun_open(char *dev)
 {
-    int tun_fd, if_fd, ppa = -1;
-    static int ip_fd = 0;
+    int tun_fd, if_fd, muxid, ppa = -1;
+    struct ifreq ifr;
     char *ptr;
 
     if( *dev ){
@@ -77,11 +79,7 @@ int tun_alloc(char *dev)
        ppa = atoi(ptr);
     }
 
-    /* Check if IP device was opened */
-    if( ip_fd )
-       close(ip_fd);
-
-    if( (ip_fd = open("/dev/ip", O_RDWR, 0)) < 0){
+    if( (ip_fd = open("/dev/udp", O_RDWR, 0)) < 0){
        syslog(LOG_ERR, "Can't open /dev/ip");
        return -1;
     }
@@ -111,13 +109,52 @@ int tun_alloc(char *dev)
        syslog(LOG_ERR, "Can't set PPA %d", ppa);
        return -1;
     }
-    if(ioctl(ip_fd, I_LINK, if_fd) < 0){
+    if( (muxid = ioctl(ip_fd, I_PLINK, if_fd)) < 0){
        syslog(LOG_ERR, "Can't link TUN device to IP");
        return -1;
     }
+    close(if_fd);    
 
     sprintf(dev, "tun%d", ppa);
+
+    memset(&ifr, 0, sizeof(ifr));
+    strcpy(ifr.ifr_name, dev);
+    ifr.ifr_ip_muxid = muxid;
+
+    if( ioctl(ip_fd, SIOCSIFMUXID, &ifr) < 0 ){
+       ioctl(ip_fd, I_PUNLINK, muxid);
+       syslog(LOG_ERR, "Can't set multiplexor id");
+       return -1;
+    }
+
     return tun_fd;
+}
+
+/* 
+ * Close TUN device. 
+ */  
+int tun_close(int fd, char *dev)
+{
+    struct ifreq ifr;
+
+    memset(&ifr, 0, sizeof(ifr));
+    strcpy(ifr.ifr_name, dev);
+    if( ioctl(ip_fd, SIOCGIFFLAGS, &ifr) < 0 ){
+       syslog(LOG_ERR, "Can't get iface flags");
+       return 0;
+    }
+
+    if( ioctl(ip_fd, SIOCGIFMUXID, &ifr) < 0 ){
+       syslog(LOG_ERR, "Can't get multiplexor id");
+       return 0;
+    }
+
+    if( ioctl(ip_fd, I_PUNLINK, ifr.ifr_ip_muxid) < 0 ){
+       syslog(LOG_ERR, "Can't unlink interface");
+       return 0;
+    }
+
+    close(ip_fd); close(fd);
 }
 
 int tun_write(int fd, char *buf, int len)
