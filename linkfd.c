@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: linkfd.c,v 1.4.2.4 2000/12/24 18:57:40 maxk Exp $
+ * $Id: linkfd.c,v 1.4.2.5 2000/12/28 04:38:16 maxk Exp $
  */
 
 #include "config.h"
@@ -104,61 +104,52 @@ int lfd_free_mod(void)
  /* Run modules down (from head to tail) */
 inline int lfd_run_down(int len, char *in, char **out)
 {
-     struct lfd_mod *mod = lfd_mod_head;
+     register struct lfd_mod *mod;
      
      *out = in;
-     if( mod ) {
-        for( ; mod && len > 0; mod = mod->next )
-            if( mod->encode ){
-               len = (mod->encode)(len,in,out);
-               in = *out;
-            }
-     }
+     for(mod = lfd_mod_head; mod && len > 0; mod = mod->next )
+        if( mod->encode ){
+           len = (mod->encode)(len, in, out);
+           in = *out;
+        }
      return len;
 }
 
 /* Run modules up (from tail to head) */
 inline int lfd_run_up(int len, char *in, char **out)
 {
-     struct lfd_mod *mod = lfd_mod_tail;
+     register struct lfd_mod *mod;
      
      *out = in;
-     if( mod ) {
-        for( ; mod && len > 0; mod = mod->prev )
-	    if( mod->decode ){
-	       len = (mod->decode)(len,in,out);
-               in = *out;
-	    }
-     }
+     for(mod = lfd_mod_tail; mod && len > 0; mod = mod->prev )
+        if( mod->decode ){
+	   len = (mod->decode)(len, in, out);
+           in = *out;
+	}
      return len;
 }
 
 /* Check if modules are accepting the data(down) */
 inline int lfd_check_down(void)
 {
-     struct lfd_mod *mod = lfd_mod_head;
-     int err = 1;	    
+     register struct lfd_mod *mod;
+     int err = 1;
  
-     if( mod ){
-	for( ; mod && err > 0; mod = mod->next )
-           if( mod->avail_encode )
-              err = (mod->avail_encode)();
-     }
-	
+     for(mod = lfd_mod_head; mod && err > 0; mod = mod->next )
+        if( mod->avail_encode )
+           err = (mod->avail_encode)();
      return err;
 }
 
 /* Check if modules are accepting the data(up) */
 inline int lfd_check_up(void)
 {
-     struct lfd_mod *mod = lfd_mod_tail;
-     int err = 1;	    
+     register struct lfd_mod *mod;
+     int err = 1;
 
-     if( mod ){
-        for( ; mod && err > 0; mod = mod->prev)
-           if( mod->avail_decode )
-              err = (mod->avail_decode)();
-     }
+     for(mod = lfd_mod_tail; mod && err > 0; mod = mod->prev)
+        if( mod->avail_decode )
+           err = (mod->avail_decode)();
 
      return err;
 }
