@@ -17,13 +17,14 @@
  */
 
 /*
- * $Id: lib.h,v 1.2.2.2 2001/06/07 15:37:16 maxk Exp $
+ * $Id: lib.h,v 1.2.2.3 2001/06/09 13:10:16 bergolth Exp $
  */ 
 #ifndef _VTUN_LIB_H
 #define _VTUN_LIB_H
 
 #include "config.h"
 #include <sys/types.h>
+#include <signal.h>
 #include <errno.h>
 
 #ifdef HAVE_LIBUTIL_H
@@ -49,7 +50,7 @@ int  run_cmd(void *d, void *opt);
 void free_sopt(struct vtun_sopt *opt);
 
 /* IO cancelation */
-extern volatile int __io_canceled;
+extern volatile sig_atomic_t __io_canceled;
 
 static inline void io_init(void)
 {

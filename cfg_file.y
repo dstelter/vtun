@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: cfg_file.y,v 1.1.1.2.2.5 2001/06/07 15:36:20 maxk Exp $
+ * $Id: cfg_file.y,v 1.1.1.2.2.6 2001/06/09 13:10:16 bergolth Exp $
  */ 
 
 #include "config.h"
@@ -47,8 +47,8 @@ void *cp_cmd(void *d, void *u);
 int free_cmd(void *d, void *u);
 
 void copy_addr(struct vtun_host *to, struct vtun_host *from);
+int free_host(void *d, void *u);
 void free_addr(struct vtun_host *h);
-
 void free_host_list(void);
 
 int yyparse(void);

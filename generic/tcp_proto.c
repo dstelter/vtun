@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: tcp_proto.c,v 1.4.2.2 2000/12/19 17:10:07 maxk Exp $
+ * $Id: tcp_proto.c,v 1.4.2.3 2001/06/09 13:10:16 bergolth Exp $
  */ 
 
 #include "config.h"
@@ -57,7 +57,6 @@
 int tcp_write(int fd, char *buf, int len)
 {
      register char *ptr;
-     register int wlen;
 
      ptr = buf - sizeof(short);
 

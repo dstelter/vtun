@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: linkfd.c,v 1.4.2.8 2001/06/07 15:37:16 maxk Exp $
+ * $Id: linkfd.c,v 1.4.2.9 2001/06/09 13:10:16 bergolth Exp $
  */
 
 #include "config.h"
@@ -156,7 +156,7 @@ inline int lfd_check_up(void)
 		
 /********** Linker *************/
 /* Termination flag */
-static int linker_term;
+static volatile sig_atomic_t linker_term;
 
 static void sig_term(int sig)
 {

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lib.c,v 1.1.1.2.2.3 2001/06/07 15:37:16 maxk Exp $
+ * $Id: lib.c,v 1.1.1.2.2.4 2001/06/09 13:10:16 bergolth Exp $
  */ 
 
 #include "config.h"
@@ -39,7 +39,7 @@
 #include "linkfd.h"
 #include "lib.h"
 
-volatile int __io_canceled = 0;
+volatile sig_atomic_t __io_canceled = 0;
 
 #ifndef HAVE_SETPROC_TITLE
 /* Functions to manipulate with program title */
