@@ -1,10 +1,10 @@
 # By default, builds without socks-support.
 # To build with socks-support, issue:
-#   rpm --define "USE_SOCKS yes" ...
+#   rpm --define "_with_socks yes" ...
 
 # By default, builds with LZO support (available for any RPM system)
 # To disable LZO, issue:
-#   rpm --define "NO_USE_LZO yes" ...
+#   rpm --define "_without_lzo yes" ...
 
 # define variables here for older RPM versions.
 %define name	vtun
@@ -52,20 +52,20 @@ BuildRequires: 	automake
 
 # please check the FAQ for this question, and mail Bishop if there is
 # no FAQ entry.
-%define	_buildreq_	zlib-devel %{!?_without_ssl:openssl-devel >= 0.9.7} %{!?NO_USE_LZO: lzo-devel}
+%define	_buildreq_	zlib-devel %{!?_without_ssl:openssl-devel >= 0.9.7} %{!?_without_lzo: lzo-devel}
 %define	_requires_	tun
 
 # Caldera has funny zlib
-%define	_buildreq_ol	libz-devel %{!?_without_ssl:openssl-devel >= 0.9.7} %{!?NO_USE_LZO:lzo-devel}
+%define	_buildreq_ol	libz-devel %{!?_without_ssl:openssl-devel >= 0.9.7} %{!?_without_lzo:lzo-devel}
 # Mandrake has unpredictable devel package names
-%define	_buildreq_mdk	zlib1-devel %{!?_without_ssl:libopenssl0-devel >= 0.9.7} %{!?NO_USE_LZO: liblzo1-devel}
+%define	_buildreq_mdk	zlib1-devel %{!?_without_ssl:libopenssl0-devel >= 0.9.7} %{!?_without_lzo: liblzo1-devel}
 
 # normally, NOT depending on the tun package encourages other apps to
 # clobber the modules.conf file. In this case, the reverse is true,
 # since FCx actually includes all the necessary entries.  So no tun.
 # We avoid a %null value by stating one redundantly.
 %define	_requires_fc	zlib
-%define	_buildreq_fc	zlib-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel}
+%define	_buildreq_fc	zlib-devel %{!?_without_ssl:openssl-devel} %{!?_without_lzo: lzo-devel}
 %define	_requires_rhas4	%_requires_fc
 %define	_buildreq_rhas4	%_buildreq_fc
 
@@ -83,8 +83,8 @@ network tasks like VPN, Mobile IP, Shaped Internet access, IP address
 saving, etc.  It is completely a user space implementation and does
 not require modification to any kernel parts.
 
-This package is built with%{!?USE_SOCKS:out} SOCKS-support.
-%{?NO_USE_LZO:This package is built without LZO support.}
+This package is built with%{!?_with_socks:out} SOCKS-support.
+%{?_without_lzo:This package is built without LZO support.}
 
 %description -l pl
 VTun umo¿liwia tworzenie Wirtualnych Tunelu poprzez sieci TCP/IP wraz
@@ -94,7 +94,6 @@ protoko³ów szeregowych.
 
 
 %prep
-
 %setup -n %{name}
 %{__aclocal}
 %{__autoconf}
@@ -102,8 +101,8 @@ protoko³ów szeregowych.
             --prefix=%{_exec_prefix} 	   \
 	    --sysconfdir=/etc 		   \
 	    --localstatedir=%{_var}	   \
-%{?NO_USE_LZO: --disable-lzo} \
-%{?USE_SOCKS: --enable-socks}
+%{?_without_lzo: --disable-lzo} \
+%{?_with_socks: --enable-socks}
 
 %build
 %if "%_dis" == "suse"
@@ -181,6 +180,7 @@ sbin/insserv etc/init.d/vtund
 #date +"%a %b %d %Y"
 %changelog
 * Thu Oct 07 2004 Bishop Clark (LC957) <bishop@platypus.bc.ca>	2.9.91-3
+- macros support --with/out conditional command line
 - premliminary support for RHAS4 (FC2)
 - AES requires Openssl 097 or higher.
 
