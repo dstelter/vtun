@@ -9,7 +9,7 @@
 # define variables here for older RPM versions.
 %define name	vtun
 %define version	2.9.91
-%define release	1
+%define release	1.0.2
 
 # expansion of the previous part.
 # get the distro mark (eg rh70)
@@ -51,7 +51,7 @@ BuildRequires: 	automake
 
 # please check the FAQ for this question, and mail Bishop if there is
 # no FAQ entry.
-%define	_requires	tun libz-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel}
+%define	_requires	tun zlib-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel}
 
 # Caldera has funny zlib
 %define	_requires_ol	tun libz-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO:lzo-devel}
@@ -61,7 +61,7 @@ BuildRequires: 	automake
 # normally, NOT depending on the tun package encourages other apps to
 # clobber the modules.conf file. In this case, the reverse is true,
 # since FCx actually includes all the necessary entries.  So no tun.
-%define	_requires_fc	libz-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel}
+%define	_requires_fc	zlib-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel}
 
 Requires:	%{_requires}
 
