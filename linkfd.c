@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: linkfd.c,v 1.1.1.2 2000/03/28 17:18:42 maxk Exp $
+ * $Id: linkfd.c,v 1.6.2.1 2002/01/14 21:51:24 noop Exp $
  */
 
 #include "config.h"
@@ -55,7 +55,7 @@
  */
 struct vtun_host *lfd_host;
 
-struct lfd_mod *lfd_mod_head = NULL, *lfd_mod_tail = NULL;
+static struct lfd_mod *lfd_mod_head = NULL, *lfd_mod_tail = NULL;
 
 /* Modules functions*/
 
@@ -104,73 +104,72 @@ int lfd_free_mod(void)
  /* Run modules down (from head to tail) */
 inline int lfd_run_down(int len, char *in, char **out)
 {
-     struct lfd_mod *mod = lfd_mod_head;
+     register struct lfd_mod *mod;
      
      *out = in;
-     if( mod ) {
-        for( ; mod && len > 0; mod = mod->next )
-            if( mod->encode ){
-               len = (mod->encode)(len,in,out);
-               in = *out;
-            }
-     }
+     for(mod = lfd_mod_head; mod && len > 0; mod = mod->next )
+        if( mod->encode ){
+           len = (mod->encode)(len, in, out);
+           in = *out;
+        }
      return len;
 }
 
 /* Run modules up (from tail to head) */
 inline int lfd_run_up(int len, char *in, char **out)
 {
-     struct lfd_mod *mod = lfd_mod_tail;
+     register struct lfd_mod *mod;
      
      *out = in;
-     if( mod ) {
-        for( ; mod && len > 0; mod = mod->prev )
-	    if( mod->decode ){
-	       len = (mod->decode)(len,in,out);
-               in = *out;
-	    }
-     }
+     for(mod = lfd_mod_tail; mod && len > 0; mod = mod->prev )
+        if( mod->decode ){
+	   len = (mod->decode)(len, in, out);
+           in = *out;
+	}
      return len;
 }
 
 /* Check if modules are accepting the data(down) */
 inline int lfd_check_down(void)
 {
-     struct lfd_mod *mod = lfd_mod_head;
-     int err = 1;	    
+     register struct lfd_mod *mod;
+     int err = 1;
  
-     if( mod ){
-	for( ; mod && err > 0; mod = mod->next )
-           if( mod->avail_encode )
-              err = (mod->avail_encode)();
-     }
-	
+     for(mod = lfd_mod_head; mod && err > 0; mod = mod->next )
+        if( mod->avail_encode )
+           err = (mod->avail_encode)();
      return err;
 }
 
 /* Check if modules are accepting the data(up) */
 inline int lfd_check_up(void)
 {
-     struct lfd_mod *mod = lfd_mod_tail;
-     int err = 1;	    
+     register struct lfd_mod *mod;
+     int err = 1;
 
-     if( mod ){
-        for( ; mod && err > 0; mod = mod->prev)
-           if( mod->avail_decode )
-              err = (mod->avail_decode)();
-     }
+     for(mod = lfd_mod_tail; mod && err > 0; mod = mod->prev)
+        if( mod->avail_decode )
+           err = (mod->avail_decode)();
 
      return err;
 }
 		
 /********** Linker *************/
 /* Termination flag */
-static int linker_term;
+static volatile sig_atomic_t linker_term;
 
 static void sig_term(int sig)
 {
-     syslog(LOG_INFO,"Closing connection");
-     linker_term = 1;
+     syslog(LOG_INFO, "Closing connection");
+     io_cancel();
+     linker_term = VTUN_SIG_TERM;
+}
+
+static void sig_hup(int sig)
+{
+     syslog(LOG_INFO, "Reestablishing connection");
+     io_cancel();
+     linker_term = VTUN_SIG_HUP;
 }
 
 /* Statistic dump */
@@ -203,12 +202,15 @@ int lfd_linker(void)
      struct timeval tv;
      char *buf, *out;
      fd_set fdset;
+     int bad_frames;
      int maxfd, idle = 0;
 
-     if( !(buf = malloc(VTUN_FRAME_SIZE + VTUN_FRAME_OVERHEAD)) ){
+     if( !(buf = lfd_alloc(VTUN_FRAME_SIZE + VTUN_FRAME_OVERHEAD)) ){
 	syslog(LOG_ERR,"Can't allocate buffer for the linker"); 
-        return 1; 
+        return 0; 
      }
+     buf += 4;
+     proto_write(fd1, buf, VTUN_ECHO_REQ);
 
      maxfd = (fd1 > fd2 ? fd1 : fd2) + 1;
 
@@ -220,7 +222,9 @@ int lfd_linker(void)
         FD_ZERO(&fdset);
 	FD_SET(fd1, &fdset);
 	FD_SET(fd2, &fdset);
- 	tv.tv_sec = 30; tv.tv_usec = 0;
+
+ 	tv.tv_sec  = lfd_host->ka_interval;
+	tv.tv_usec = 0;
 
 	if( (len = select(maxfd, &fdset, NULL, NULL, &tv)) < 0 ){
 	   if( errno != EAGAIN && errno != EINTR )
@@ -232,12 +236,24 @@ int lfd_linker(void)
 	if( !len ){
 	   /* We are idle, lets check connection */
 	   if( lfd_host->flags & VTUN_KEEP_ALIVE ){
-	      proto_write(fd1, NULL, VTUN_ECHO_REQ);
-	      if( ++idle > 3 ){
+	      if( ++idle > lfd_host->ka_failure ){
 	         syslog(LOG_INFO,"Session %s network timeout", lfd_host->host);
 		 break;	
+
+	      }
+	      if( idle > 1 ){
+		  if( proto_write(fd1, buf, VTUN_ECHO_REQ) < 0 )
+		      break;
 	      }
 	   }
+	   if( lfd_host->stat.comp_out > VTUN_RESET_KEY &&
+	       (lfd_host->more_flags & VTUN_IM_SERVER)) {
+	       lfd_host->more_flags |= VTUN_GET_KEY;
+	       lfd_host->stat.comp_out = 0;
+	       proto_write(fd1, buf, VTUN_NEW_KEY);
+	   }
+	      /* Send ECHO request */
+	   
 	   continue;
 	}	   
 
@@ -245,7 +261,7 @@ int lfd_linker(void)
          * the local device (fd2) */
 	if( FD_ISSET(fd1, &fdset) && lfd_check_up() ){
 	   idle = 0; 
-	   if( (len=proto_read(fd1,buf)) <= 0 )
+	   if( (len=proto_read(fd1, buf)) <= 0 )
 	      break;
 
 	   /* Handle frame flags */
@@ -254,34 +270,62 @@ int lfd_linker(void)
 	   if( fl ){
 	      if( fl==VTUN_BAD_FRAME ){
 		 syslog(LOG_ERR, "Received bad frame");
+		 if (++bad_frames > 10)
+		     break;
 		 continue;
+	      }else{
+		  bad_frames=0;
 	      }
 	      if( fl==VTUN_ECHO_REQ ){
-		 /* Reply on echo request */
-	 	 proto_write(fd1, NULL, VTUN_ECHO_REP);
+		 /* Send ECHO reply */
+	 	 if( proto_write(fd1, buf, VTUN_ECHO_REP) < 0 )
+		    break;
 		 continue;
 	      }
    	      if( fl==VTUN_ECHO_REP ){
-		 /* Just ignore echo reply */
+		 /* Just ignore ECHO reply */
 		 continue;
 	      }
 	      if( fl==VTUN_CONN_CLOSE ){
 	         syslog(LOG_INFO,"Connection closed by other side");
 		 break;
 	      }
+	      if( fl==VTUN_NEW_KEY ){
+		  struct lfd_mod *mod=lfd_mod_head;
+		  if (!(lfd_host->more_flags&VTUN_GET_KEY)){
+		      lfd_host->more_flags |= VTUN_GET_KEY;
+		      proto_write(fd1, buf, VTUN_NEW_KEY);
+		  }
+
+		  while(mod){
+		      if(!strcmp(mod->name,"Encryptor")){
+			  (mod->alloc)(lfd_host);
+			  break;
+		      }
+		      mod=mod->next;
+		  }
+		  lfd_host->more_flags &= ~VTUN_GET_KEY;
+		  continue;
+	      }
 	   }   
 
 	   lfd_host->stat.comp_in += len; 
 	   if( (len=lfd_run_up(len,buf,&out)) == -1 )
 	      break;	
-	   if( len && dev_write(fd2,out,len) < 0 )
-	      break; 
+	   if( len && dev_write(fd2,out,len) < 0 ){
+              if( errno != EAGAIN && errno != EINTR )
+                 break;
+              else
+                 continue;
+           }
 	   lfd_host->stat.byte_in += len; 
 	}
 
 	/* Read data from the local device(fd2), encode and pass it to 
          * the network (fd1) */
 	if( FD_ISSET(fd2, &fdset) && lfd_check_down() ){
+	    if ( lfd_host->more_flags & VTUN_GET_KEY )
+		continue;
 	   if( (len = dev_read(fd2, buf, VTUN_FRAME_SIZE)) < 0 ){
 	      if( errno != EAGAIN && errno != EINTR )
 	         break;
@@ -300,10 +344,14 @@ int lfd_linker(void)
      }
      if( !linker_term && errno )
 	syslog(LOG_INFO,"%s (%d)", strerror(errno), errno);
-	
+
+     if (linker_term == VTUN_SIG_TERM) {
+       lfd_host->persist = 0;
+     }
+
      /* Notify other end about our close */
-     proto_write(fd1, NULL, VTUN_CONN_CLOSE);
-     free(buf);
+     proto_write(fd1, buf, VTUN_CONN_CLOSE);
+     lfd_free(buf);
 
      return 0;
 }
@@ -311,7 +359,7 @@ int lfd_linker(void)
 /* Link remote and local file descriptors */ 
 int linkfd(struct vtun_host *host)
 {
-     struct sigaction sa, sat;
+     struct sigaction sa, sa_oldterm, sa_oldhup;
      int old_prio;
 
      lfd_host = host;
@@ -333,11 +381,13 @@ int linkfd(struct vtun_host *host)
 	lfd_add_mod(&lfd_shaper);
 
      if(lfd_alloc_mod(host))
-	return -1;
+	return 0;
 
      memset(&sa, 0, sizeof(sa));
      sa.sa_handler=sig_term;
-     sigaction(SIGTERM,&sa,&sat);
+     sigaction(SIGTERM,&sa,&sa_oldterm);
+     sa.sa_handler=sig_hup;
+     sigaction(SIGHUP,&sa,&sa_oldhup);
 
      /* Initialize statstic dumps */
      if( host->flags & VTUN_STAT ){
@@ -356,6 +406,8 @@ int linkfd(struct vtun_host *host)
 	   syslog(LOG_ERR, "Can't open stats file %s", file);
      }
 
+     io_init();
+
      lfd_linker();
 
      if( host->flags & VTUN_STAT ){
@@ -365,7 +417,8 @@ int linkfd(struct vtun_host *host)
 
      lfd_free_mod();
      
-     sigaction(SIGTERM,&sat,NULL);
+     sigaction(SIGTERM,&sa_oldterm,NULL);
+     sigaction(SIGHUP,&sa_oldhup,NULL);
 
      setpriority(PRIO_PROCESS,0,old_prio);
 

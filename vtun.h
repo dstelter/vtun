@@ -17,14 +17,12 @@
  */
 
 /*
- * $Id: vtun.h,v 1.1.1.2 2000/03/28 17:18:38 maxk Exp $
+ * $Id: vtun.h,v 1.9.2.1 2002/01/14 21:51:24 noop Exp $
  */ 
 #ifndef _VTUN_H
 #define _VTUN_H
 
 #include "llist.h"
-
-#define VER "2.1b4 03/21/2000"
 
 /* Default VTUN port */
 #define VTUN_PORT 5000
@@ -40,6 +38,12 @@
 
 /* Statistic interval in seconds */
 #define VTUN_STAT_IVAL  5*60  /* 5 min */
+
+/* Max lenght of device name */
+#define VTUN_DEV_LEN  20 
+
+/* How often to renegotiate key (in bytes) */
+#define VTUN_RESET_KEY 0xFFFF
  
 /* End of configurable part */
 
@@ -88,6 +92,8 @@ struct vtun_host {
    llist down;
 
    int  flags;
+   int  more_flags;
+   int  timeout;
    int  spd_in;
    int  spd_out;
    int  zlevel;
@@ -95,8 +101,15 @@ struct vtun_host {
    int  rmt_fd;
    int  loc_fd;
 
+   /* Persist mode */
+   int  persist; 
+
    /* Multiple connections */
    int  multi;
+
+   /* Keep Alive */
+   int ka_interval;
+   int ka_failure;
 
    /* Source address */
    struct vtun_addr src_addr;
@@ -125,10 +138,15 @@ extern llist host_list;
 #define VTUN_SHAPE      0x0004
 #define VTUN_ENCRYPT    0x0008
 
+#define VTUN_IM_CLIENT  0x0001
+#define VTUN_IM_SERVER  0x0002
+#define VTUN_DEV_OPEN   0x0004
+#define VTUN_GET_KEY    0x0008
 /* Mask to drop the flags which will be supplied by the server */
 #define VTUN_CLNT_MASK  0xf000
 
 #define VTUN_STAT	0x1000
+#define VTUN_PERSIST    0x2000
 
 /* Constants and flags for VTun protocol */
 #define VTUN_FRAME_SIZE     2048
@@ -139,6 +157,7 @@ extern llist host_list;
 #define VTUN_ECHO_REQ	0x2000
 #define VTUN_ECHO_REP	0x4000
 #define VTUN_BAD_FRAME  0x8000
+#define VTUN_NEW_KEY    0xf000
 
 /* Authentication message size */
 #define VTUN_MESG_SIZE	50
@@ -148,10 +167,18 @@ extern llist host_list;
 #define VTUN_MULTI_ALLOW	1  /* yes */
 #define VTUN_MULTI_KILL		2
 
+/* keep interface in persistant mode */
+#define VTUN_PERSIST_KEEPIF     2
+
+/* Values for the signal flag */
+
+#define VTUN_SIG_TERM 1
+#define VTUN_SIG_HUP  2
+
 /* Global options */
 struct vtun_opts {
-   int persist;
-   int timeout;
+   int  timeout;
+   int  persist;
 
    char *cfg_file;
 
@@ -160,10 +187,12 @@ struct vtun_opts {
    char *ifcfg;		 /* Command to configure net devices */
    char *route;		 /* Command to configure routing */
    char *fwall; 	 /* Command to configure FireWall */
+   char *iproute;	 /* iproute command */
 
    char *svr_name;       /* Server's host name */
    int  svr_port;	 /* Server's port */
    int  svr_type;	 /* Server mode */
+   int  syslog; 	 /* Facility to log messages to syslog under */
 };
 #define VTUN_STAND_ALONE	0 
 #define VTUN_INETD		1	
