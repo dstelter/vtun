@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: cfg_file.y,v 1.1.1.2.2.9 2001/08/21 21:31:37 maxk Exp $
+ * $Id: cfg_file.y,v 1.1.1.2.2.10 2001/09/06 19:03:26 maxk Exp $
  */ 
 
 #include "config.h"
@@ -28,9 +28,9 @@
 #include <string.h>
 #include <stdarg.h>
 
-#define SYSLOG_NAMES
 #include <syslog.h>
 
+#include "compat.h"
 #include "vtun.h"
 
 int lineno = 1;
@@ -563,13 +563,38 @@ inline void free_host_list(void)
    llist_free(&host_list, free_host, NULL);
 }
 
+static struct {
+   char *c_name;
+   int  c_val;
+} syslog_names[] = {
+    { "auth",   LOG_AUTH },
+    { "cron",   LOG_CRON },
+    { "daemon", LOG_DAEMON },
+    { "kern",   LOG_KERN },
+    { "lpr",    LOG_LPR },
+    { "mail",   LOG_MAIL },
+    { "news",   LOG_NEWS },
+    { "syslog", LOG_SYSLOG },
+    { "user",   LOG_USER },
+    { "uucp",   LOG_UUCP },
+    { "local0", LOG_LOCAL0 },
+    { "local1", LOG_LOCAL1 },
+    { "local2", LOG_LOCAL2 },
+    { "local3", LOG_LOCAL3 },
+    { "local4", LOG_LOCAL4 },
+    { "local5", LOG_LOCAL5 },
+    { "local6", LOG_LOCAL6 },
+    { "local7", LOG_LOCAL7 },
+    { NULL, -1 }
+};
+
 int parse_syslog(char *facility)
 {
    int i;
 
-   for (i=0; facilitynames[i].c_name;i++) {
-      if (!strcmp(facilitynames[i].c_name, facility)) {
-         vtun.syslog = facilitynames[i].c_val;
+   for (i=0; syslog_names[i].c_name;i++) {
+      if (!strcmp(syslog_names[i].c_name, facility)) {
+         vtun.syslog = syslog_names[i].c_val;
          return(0);
       }
    }
