@@ -3,8 +3,9 @@ Future:
 	SigINT should be heeded (Michael Tokarov)
 
 ver 2.5.3:
-	$DESTDIR in makefile for packaging glee.
-
+	$DESTDIR in makefile for packaging glee (PLD)
+	Tighter code in generic/pty_dev.c where available (PLD)
+	
 ver 2.5.2:
 	Configure fixes, to ensure vtun will build under Mac OS/X (Kurt Werle)
 	exclude <rand.h> #inclusion under OS/X

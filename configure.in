@@ -176,6 +176,8 @@ fi
 
 AC_MSG_RESULT()
 
+AC_CHECK_FUNCS([getpt grantpt unlockpt ptsname])
+
 OS_REL=`uname -r | tr -d '[A-Za-z\-\_\.]'`
 case $host_os in
 	*linux*)

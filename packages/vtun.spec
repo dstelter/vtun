@@ -1,5 +1,5 @@
 %define name	vtun
-%define version	2.5.2
+%define version	2.5.3
 %define release	1
 
 #this part NEEDS to be expanded

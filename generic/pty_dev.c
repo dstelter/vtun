@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: pty_dev.c,v 1.1.1.1.2.1 2000/11/20 07:57:33 maxk Exp $
+ * pty_dev.c,v 1.1.1.1.2.1 2000/11/20 07:57:33 maxk Exp
  */ 
 
 #include "config.h"
@@ -38,11 +38,27 @@
  */  
 int pty_open(char *sl_name)
 {
+    int  mr_fd;
+#ifdef HAVE_GETPT && HAVE_GRANTPT && HAVE_UNLOCKPT && HAVE_PTSNAME
+    char *ptyname;
+
+    if((mr_fd=getpt()) < 0)
+ 	return -1;
+    if(grantpt(mr_fd) != 0)
+	return -1;
+    if(unlockpt(mr_fd) != 0)
+	return -1;
+    if ((ptyname = (char*)ptsname(mr_fd)) == NULL)
+	return -1;
+    strcpy(sl_name, ptyname);
+    return mr_fd;
+
+#else
+
     char ptyname[] = "/dev/ptyXY";
     char ch[] = "pqrstuvwxyz";
     char digit[] = "0123456789abcdefghijklmnopqrstuv";
     int  l, m;
-    int  mr_fd;
 
     /* This algorithm should work for almost all standard Unices */	
     for(l=0; ch[l]; l++ ) {
@@ -64,6 +80,7 @@ int pty_open(char *sl_name)
 	    }
 	}
 	return -1;
+#endif
 }
 
 /* Write frames to PTY device */
