@@ -50,16 +50,11 @@
 
 #ifdef HAVE_SSL
 
-#ifndef __APPLE_CC__
 /* OpenSSL includes */
 #include <openssl/evp.h>
 #include <openssl/md5.h>
 #include <openssl/blowfish.h>
 #include <openssl/rand.h>
-#else /* YAY - We're MAC OS */
-#include <sys/md5.h>
-#include <crypto/blowfish.h>
-#endif  /* __APPLE_CC__ */
 
 /*
  * #define LFD_ENCRYPT_DEBUG
