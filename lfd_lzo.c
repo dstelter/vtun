@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_lzo.c,v 1.1.1.2.2.2 2000/11/21 08:28:57 maxk Exp $
+ * $Id: lfd_lzo.c,v 1.1.1.2.2.3 2000/12/19 17:10:07 maxk Exp $
  */ 
 
 #include "config.h"
@@ -38,7 +38,7 @@
 
 static lzo_byte *zbuf;
 static lzo_voidp wmem;
-static int zbuf_size = VTUN_FRAME_SIZE * VTUN_FRAME_SIZE / 64 + 16 +3;
+static int zbuf_size = VTUN_FRAME_SIZE * VTUN_FRAME_SIZE / 64 + 16 + 3;
 
 /* Pointer to compress function */
 int (*lzo1x_compress)(const lzo_byte *src, lzo_uint  src_len,
@@ -68,7 +68,7 @@ int alloc_lzo(struct vtun_host *host)
 	syslog(LOG_ERR,"Can't initialize compressor");
 	return 1;
      }	
-     if( !(zbuf = lzo_malloc(zbuf_size)) ){
+     if( !(zbuf = lfd_alloc(zbuf_size)) ){
 	syslog(LOG_ERR,"Can't allocate buffer for the compressor");
 	return 1;
      }	
@@ -89,16 +89,8 @@ int alloc_lzo(struct vtun_host *host)
 
 int free_lzo()
 {
-     lzo_free(zbuf); zbuf = NULL;
+     lfd_free(zbuf); zbuf = NULL;
      lzo_free(wmem); wmem = NULL;
-     return 0;
-}
-
-inline int expand_zbuf(int len)
-{
-     if( !(zbuf = realloc(zbuf,zbuf_size+len)) )
-         return -1;
-     zbuf_size += len;     
      return 0;
 }
 
@@ -125,9 +117,6 @@ int decomp_lzo(int len, char *in, char **out)
      int zlen = 0;     
      int err;
 
-     if( zbuf_size < len )
-	expand_zbuf(zlen - zbuf_size);
-	
      if( (err=lzo1x_decompress(in,len,zbuf,&zlen,wmem)) != LZO_E_OK ){
         syslog(LOG_ERR,"Decompress error %d",err);
         return -1;

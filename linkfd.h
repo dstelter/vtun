@@ -17,13 +17,44 @@
  */
 
 /*
- * $Id: linkfd.h,v 1.1.1.2 2000/03/28 17:18:35 maxk Exp $
+ * $Id: linkfd.h,v 1.1.1.2.2.1 2000/12/19 17:10:07 maxk Exp $
  */ 
 #ifndef _LINKFD_H
 #define _LINKFD_H
 
 /* Priority of the process in the link_fd function */
 #define LINKFD_PRIO -19
+
+/* Frame alloc/free */
+#define LINKFD_FRAME_RESERV 8
+
+static inline char * lfd_alloc(size_t size)
+{
+     register char * buf;
+
+     size += LINKFD_FRAME_RESERV;
+
+     if( !(buf = malloc(size)) )
+        return NULL;
+
+     return buf+LINKFD_FRAME_RESERV; 
+}
+
+static inline char * lfd_realloc(char *buf, size_t size)
+{
+     buf  -= LINKFD_FRAME_RESERV;
+     size += LINKFD_FRAME_RESERV;
+
+     if( !(buf = realloc(buf, size)) )
+        return NULL;
+
+     return buf+LINKFD_FRAME_RESERV; 
+}
+
+static inline void lfd_free(char *buf)
+{
+     free(buf-LINKFD_FRAME_RESERV);
+}
 
 int linkfd(struct vtun_host *host);
 

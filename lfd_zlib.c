@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_zlib.c,v 1.1.1.2.2.1 2000/09/21 01:08:53 maxk Exp $
+ * $Id: lfd_zlib.c,v 1.1.1.2.2.2 2000/12/19 17:10:07 maxk Exp $
  */ 
 
 #include "config.h"
@@ -62,7 +62,7 @@ int zlib_alloc(struct vtun_host *host)
 	syslog(LOG_ERR,"Can't initialize decompressor");
 	return 1;
      }	
-     if( !(zbuf = malloc(zbuf_size)) ){
+     if( !(zbuf = lfd_alloc(zbuf_size)) ){
 	syslog(LOG_ERR,"Can't allocate buffer for the compressor");
 	return 1;
      }
@@ -81,14 +81,14 @@ int zlib_free()
      deflateEnd(&zd);
      inflateEnd(&zi);
 
-     free(zbuf); zbuf = NULL;
+     lfd_free(zbuf); zbuf = NULL;
 
      return 0;
 }
 
 static int expand_zbuf(z_stream *zs, int len)
 {
-     if( !(zbuf = realloc(zbuf,zbuf_size+len)) )
+     if( !(zbuf = lfd_realloc(zbuf,zbuf_size+len)) )
          return -1;
      zs->next_out = zbuf + zbuf_size;
      zs->avail_out = len;

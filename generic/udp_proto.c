@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: udp_proto.c,v 1.1.1.1 2000/03/28 17:19:56 maxk Exp $
+ * $Id: udp_proto.c,v 1.5.2.1 2000/12/19 17:10:07 maxk Exp $
  */ 
 
 #include "config.h"
@@ -56,82 +56,56 @@
 #include "vtun.h"
 #include "lib.h"
 
-/* Functions to read/write TCP and UDP frames. */
+/* Functions to read/write UDP frames. */
 int udp_write(int fd, char *buf, int len)
 {
-     unsigned short nlen, cnt; 
-     struct iovec iv[2];
+     register char *ptr;
+     register int wlen;
 
-     nlen = htons(len); 
-     len  = len & VTUN_FSIZE_MASK;
+     ptr = buf - sizeof(short);
 
-     iv[0].iov_len  = sizeof(short); 
-     iv[0].iov_base = (char *) &nlen; 
-     if( buf ) {
-        iv[1].iov_len  = len; 
-        iv[1].iov_base = buf;
-	cnt = 2;
-     } else {
-        /* Write flags only */
-	cnt = 1;
-     }
+     *((unsigned short *)ptr) = htons(len); 
+     len  = (len & VTUN_FSIZE_MASK) + sizeof(short);
 
-     while(1) {
-        register int err;
-	err = writev(fd, iv, cnt); 
-	if( err < 0 && ( errno == EAGAIN || errno == EINTR ) )
-	   continue;
+     while( 1 ){
+	if( (wlen = write(fd, ptr, len)) < 0 ){ 
+	   if( errno == EAGAIN || errno == EINTR )
+	      continue;
+	   if( errno == ENOBUFS )
+	      return 0;
+	}
 	/* Even if we wrote only part of the frame
          * we can't use second write since it will produce 
          * another UDP frame */  
-        return err;
+        return wlen;
      }
 }
 
 int udp_read(int fd, char *buf)
 {
-     unsigned short len, flen, cnt;
+     unsigned short hdr, flen;
      struct iovec iv[2];
-
-     /* Get frame size */
-     while(1) {
-	register int err;     
-        if( (err = recv(fd, &len, sizeof(short), MSG_PEEK)) > 0)
-	   break;
-	if( err < 0 && ( errno == EAGAIN || errno == EINTR ) )
-	   continue;
-	return err;
-     }
-
-     len = ntohs(len);
-     flen = len & VTUN_FSIZE_MASK;
-
-     if( flen > VTUN_FRAME_SIZE + VTUN_FRAME_OVERHEAD ) {
-     	/* Oversized frame, drop it.  
-	 * On UDP socket read will drop remaining part of the frame */
-        read(fd, buf, VTUN_FRAME_SIZE);
-	return VTUN_BAD_FRAME;
-     }	
+     register int rlen;
 
      /* Read frame */
      iv[0].iov_len  = sizeof(short);
-     iv[0].iov_base = (char *) &flen;
-     if( len & ~VTUN_FSIZE_MASK ) {
-	/* Read flags only */
-	cnt = 1;
-     } else {	
-        iv[1].iov_len  = flen;
-        iv[1].iov_base = buf;
-	cnt = 2;
-     }
+     iv[0].iov_base = (char *) &hdr;
+     iv[1].iov_len  = VTUN_FRAME_SIZE + VTUN_FRAME_OVERHEAD;
+     iv[1].iov_base = buf;
 
-     while(1) {
-	register int err;     
-	errno = 0;
-        if( (err = readv(fd, iv, cnt)) > 0) 
-	   return len;
-	if( err < 0 && ( errno == EAGAIN || errno == EINTR ) )
-	   continue;
-	return err;
+     while( 1 ){
+        if( (rlen = readv(fd, iv, 2)) < 0 ){ 
+	   if( errno == EAGAIN || errno == EINTR )
+	      continue;
+	   else
+     	      return rlen;
+	}
+        hdr = ntohs(hdr);
+        flen = hdr & VTUN_FSIZE_MASK;
+
+        if( rlen < 2 || (rlen-2) != flen )
+	   return VTUN_BAD_FRAME;
+
+	return hdr;
      }
 }		

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: linkfd.c,v 1.4.2.2 2000/11/21 07:43:58 maxk Exp $
+ * $Id: linkfd.c,v 1.4.2.3 2000/12/19 17:10:07 maxk Exp $
  */
 
 #include "config.h"
@@ -205,7 +205,7 @@ int lfd_linker(void)
      fd_set fdset;
      int maxfd, idle = 0;
 
-     if( !(buf = malloc(VTUN_FRAME_SIZE + VTUN_FRAME_OVERHEAD)) ){
+     if( !(buf = lfd_alloc(VTUN_FRAME_SIZE + VTUN_FRAME_OVERHEAD)) ){
 	syslog(LOG_ERR,"Can't allocate buffer for the linker"); 
         return 0; 
      }
@@ -237,7 +237,7 @@ int lfd_linker(void)
 		 break;	
 	      }
 	      /* Send ECHO request */
-	      if( proto_write(fd1, NULL, VTUN_ECHO_REQ) < 0 )
+	      if( proto_write(fd1, buf, VTUN_ECHO_REQ) < 0 )
 		 break;
 	   }
 	   continue;
@@ -260,7 +260,7 @@ int lfd_linker(void)
 	      }
 	      if( fl==VTUN_ECHO_REQ ){
 		 /* Send ECHO reply */
-	 	 if( proto_write(fd1, NULL, VTUN_ECHO_REP) < 0 )
+	 	 if( proto_write(fd1, buf, VTUN_ECHO_REP) < 0 )
 		    break;
 		 continue;
 	      }
@@ -309,8 +309,8 @@ int lfd_linker(void)
 	syslog(LOG_INFO,"%s (%d)", strerror(errno), errno);
 	
      /* Notify other end about our close */
-     proto_write(fd1, NULL, VTUN_CONN_CLOSE);
-     free(buf);
+     proto_write(fd1, buf, VTUN_CONN_CLOSE);
+     lfd_free(buf);
 
      return 0;
 }
