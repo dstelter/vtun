@@ -1,6 +1,6 @@
 %define name	vtun
-%define version	2.5
-%define release	7
+%define version	2.5.0
+%define release	1
 
 #this part NEEDS to be expanded
 %define IsSuSE	%( [ -f /etc/SuSE-release ] && echo 1 || echo 0 )
