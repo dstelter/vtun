@@ -43,6 +43,7 @@
 #include <syslog.h>
 #include <strings.h>
 #include <string.h>
+#include <time.h>
 
 #include "vtun.h"
 #include "linkfd.h"
@@ -79,7 +80,9 @@ extern int send_a_packet;
 /* out of sync packet threshold before forcing a re-init */ 
 #define MAX_GIBBERISH	10
 #define MIN_GIBBERISH   1
+#define MAX_GIBBERISH_TIME   2
 int gibberish;
+time_t gib_time_start;
 
 int cipher_enc_state;
 int cipher_dec_state;
@@ -162,6 +165,7 @@ int alloc_encrypt(struct vtun_host *host)
 
    RAND_bytes((char *)&sequence_num, 4);
    gibberish = 0;
+   gib_time_start = 0;
    phost = host;
    cipher = host->cipher;
    switch(cipher)
@@ -588,12 +592,14 @@ int recv_msg(int len, char *in, char **out)
             len -= blocksize*2;
             cipher_dec_state = CIPHER_SEQUENCE;
             gibberish = 0;
+            gib_time_start = 0;
          } 
          else 
          {
             len = 0;
             *out = in;
             gibberish++;
+            if (gibberish == 1) gib_time_start = time(NULL);
 
             if (gibberish == MIN_GIBBERISH)
             {
@@ -604,9 +610,11 @@ int recv_msg(int len, char *in, char **out)
                   "Min. gibberish threshold reached");
 #endif
             }
-            if (gibberish > MAX_GIBBERISH)
+            if (gibberish >= MAX_GIBBERISH || 
+                difftime(time(NULL), gib_time_start) >= MAX_GIBBERISH_TIME)
             {
                gibberish = 0;
+               gib_time_start = 0;
                send_a_packet = 1;
 
 #ifdef LFD_ENCRYPT_DEBUG
