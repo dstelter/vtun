@@ -116,7 +116,7 @@ make install SBIN_DIR=$RPM_BUILD_ROOT%{_sbindir} \
         LOCK_DIR=$RPM_BUILD_ROOT%{lock_dir} \
 	INSTALL_OWNER=
 
-%__install -d /etc/xinetd.d
+%__install -d $RPM_BUILD_ROOT/etc/xinetd.d
 %__sed 's:/usr/local:%{_prefix}:' scripts/vtund.xinetd \
 	> $RPM_BUILD_ROOT/etc/xinetd.d/vtun
 
