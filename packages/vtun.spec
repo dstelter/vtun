@@ -1,19 +1,3 @@
-%define name	vtun
-%define version	2.9.90
-%define release	1
-
-#this part NEEDS to be expanded
-%define IsSuSE	%( [ -f /etc/SuSE-release ] && echo 1 || echo 0 )
-%if %{IsSuSE}
- %define rc_dir   /etc/init.d
- %define lock_dir /var/lock/subsys/vtunnel
- %define log_dir  /var/log/vtunnel
-%else
- %define rc_dir /etc/rc.d/init.d
- %define lock_dir /var/lock/vtund
- %define log_dir  /var/log/vtund
-%endif
-
 # By default, builds without socks-support.
 # To build with socks-support, issue:
 #   rpm --define "USE_SOCKS yes" ...
@@ -21,6 +5,28 @@
 # By default, builds with LZO support (available for any RPM system)
 # To disable LZO, issue:
 #   rpm --define "NO_USE_LZO yes" ...
+
+# define variables here for older RPM versions.
+%define name	vtun
+%define version	2.9.90
+%define release	1
+
+# expansion of the previous part.
+# get the distro mark (eg rh70)
+%define	_dis	%(case `rpm -qf /etc/issue 2>/dev/null` in (redhat-*) echo rh;; (mandrake-*) echo mdk ;; (fedora-*) echo fc ;; (openlinux-*) echo ol ;; (whitebox-*) echo wb ;; (SuSE-*) echo suse ;; esac)
+%define _tro	%(rpm -qf --qf "%%{version}" /etc/issue | sed 's/\\.//g' )
+
+%define	rc_dir_suse	/etc/init.d
+%define	lock_dir_suse	/var/lock/subsys/vtunnel
+%define	log_dir_suse	/var/log/vtunnel
+
+# now apply the components
+# If anyone can find system that strangers understand, that still
+# enables one SRPM to build for 17 distros, I'm open to suggestions.
+%define	_requires	%{expand:%%{?_requires_%{_dis}%{_tro}:%%_requires_%{_dis}%{_tro}}%%{!?_requires_%{_dis}%{_tro}:%%{?_requires_%{_dis}:%%_requires_%{_dis}}%%{!?_requires_%{_dis}:%{_requires}}}}
+%define	rc_dir	%{expand:%%{?rc_dir_%{_dis}%{_tro}:%%rc_dir_%{_dis}%{_tro}}%%{!?rc_dir_%{_dis}%{_tro}:%%{?rc_dir_%{_dis}:%%rc_dir_%{_dis}}%%{!?rc_dir_%{_dis}:/etc/rc.d/init.d}}}
+%define	lock_dir	%{expand:%%{?lock_dir_%{_dis}%{_tro}:%%lock_dir_%{_dis}%{_tro}}%%{!?lock_dir_%{_dis}%{_tro}:%%{?lock_dir_%{_dis}:%%lock_dir_%{_dis}}%%{!?lock_dir_%{_dis}:/var/lock/vtund}}}
+%define	log_dir	%{expand:%%{?log_dir_%{_dis}%{_tro}:%%log_dir_%{_dis}%{_tro}}%%{!?log_dir_%{_dis}%{_tro}:%%{?log_dir_%{_dis}:%%log_dir_%{_dis}}%%{!?log_dir_%{_dis}:/var/log/vtund}}}
 
 Name: 		%{name}
 Version: 	%{version}
@@ -45,18 +51,14 @@ BuildRequires: 	automake
 
 # please check the FAQ for this question, and mail Bishop if there is
 # no FAQ entry.
-Requires:	tun
+%define	_requires	tun libz-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel}}}}
 
 # Caldera has funny zlib
-# Mandrake has unpredictable devel package names that just make no
-#  sense and force me to have this outrageously hideous and
-#  non-line-breakable statement.
+%define	_requires_ol	tun libz-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO:lzo-devel}
+# Mandrake has unpredictable devel package names
+%define	_requires_mdk	tun zlib1-devel %{!?_without_ssl:libopenssl0-devel} %{!?NO_USE_LZO: liblzo1-devel}
 
-BuildRequires:	%((rpm -q OpenLinux >/dev/null 2>/dev/null && echo libz-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO:lzo-devel}) || (rpm -q mandrake-release >/dev/null 2>/dev/null && echo zlib1-devel %{!?_without_ssl:libopenssl0-devel} %{!?NO_USE_LZO: liblzo1-devel}) || echo zlib-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel})
-
-# Yes, there is a better way to do all this, but I do not feel like
-# porting the dis/tro and massively layered macro tech in here.  That
-# can stay in my .rpmmacros, thanks.
+Requires:	%{_requires}
 
 %description
 VTun provides a method for creating Virtual Tunnels over TCP/IP
@@ -83,17 +85,16 @@ protoko³ów szeregowych.
 
 %setup -n %{name}
 %{__aclocal}
-#{__autoheader}			# does not work in all cases
 %{__autoconf}
-%configure			   \
+%configure				   \
             --prefix=%{_exec_prefix} 	   \
-	    --sysconfdir=/etc 	   \
-	    --localstatedir=%{_var}   \
+	    --sysconfdir=/etc 		   \
+	    --localstatedir=%{_var}	   \
 %{?NO_USE_LZO: --disable-lzo} \
 %{?USE_SOCKS: --enable-socks}
 
 %build
-%if %{IsSuSE}
+%if "%_dis" == "suse"
 %{__make} LOCK_DIR=%{lock_dir} STAT_DIR=/var/log/vtunnel
 %else
 %{__make}
@@ -103,11 +104,11 @@ protoko³ów szeregowych.
 [ $RPM_BUILD_ROOT != / ] && rm -rf $RPM_BUILD_ROOT
 %__install -d $RPM_BUILD_ROOT%{rc_dir}
 
- if [ x%{IsSuSE} = x1 ]; then
+%if "%_dis" == "suse"
 install scripts/vtund.rc.suse $RPM_BUILD_ROOT%{rc_dir}/vtund
- else 
+%else 
 install scripts/vtund.rc.red_hat $RPM_BUILD_ROOT%{rc_dir}/vtund
- fi
+%endif
 
 make install SBIN_DIR=$RPM_BUILD_ROOT%{_sbindir} \
         MAN_DIR=$RPM_BUILD_ROOT%{_mandir} \
@@ -120,7 +121,7 @@ make install SBIN_DIR=$RPM_BUILD_ROOT%{_sbindir} \
 %__sed 's:/usr/local:%{_prefix}:' scripts/vtund.xinetd \
 	> $RPM_BUILD_ROOT/etc/xinetd.d/vtun
 
-if [ x%{IsSuSE} = x1 ]; then
+%if "%_dis" == "suse"
 # SuSE RC.CONFIG templates
 install -d $RPM_BUILD_ROOT/var/adm/fillup-templates
 install -m 644 scripts/vtund.rc.suse.config $RPM_BUILD_ROOT/var/adm/fillup-templates/rc.config.vtund
@@ -128,10 +129,10 @@ install -m 644 scripts/vtund.rc.suse.config $RPM_BUILD_ROOT/var/adm/fillup-templ
 # rcvtund
 ln -sf ../..%{rc_dir}/vtund $RPM_BUILD_ROOT/usr/sbin/rcvtund
 
-fi
+%endif
 
 %post
-if [ x%{IsSuSE} = x1 ]; then
+%if "%_dis" == "suse"
 #rc config
 echo "Updating etc/rc.config..."
 if [ -x bin/fillup ] ; then
@@ -142,7 +143,7 @@ else
   echo "update by hand."
 fi
 sbin/insserv etc/init.d/vtund
-fi
+%endif
 
 %clean
 [ $RPM_BUILD_ROOT != / ] && rm -rf $RPM_BUILD_ROOT
@@ -160,12 +161,17 @@ fi
 #%{_mandir}/man8/vtun.8*
 %{_mandir}/man5/vtund.conf.5*
 /etc/xinetd.d/vtun
-%if %{IsSuSE}
+%if "%_dis" == "suse"
 %attr(755,root,root) %{_sbindir}/rcvtund
 /var/adm/fillup-templates/rc.config.vtund
 %endif
 
 %changelog
+* Tue Aug  3 2004 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.9.90-2
+- incorporation of some of PLD fixes
+- move to more macros and less if/thens
+- one ugly SPEC for 18 happy distros.
+
 * Sun Mar 14 2004 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.9.90-1
 - new 3.0.0 pre-release.  
 - better ciphers and a persist-keep bugfix.

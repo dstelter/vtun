@@ -1,4 +1,11 @@
 
+3.0.0-pre1:
+	Implementation of Nickolai 'kolya' Zeldovich's mlockall() patch	(bc)
+	Some cleanup with respect to SSL on Apple (dpf)
+	Added upper time bound to packet-based resync to reduce resync
+	delay (dpf)
+	Added xinetd prototype file for vtund
+	
 3.0.0-pre0:
         (Dale Fountain)
 	Added multiple cipher support.
