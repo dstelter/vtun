@@ -9,7 +9,7 @@
 # define variables here for older RPM versions.
 %define name	vtun
 %define version	2.9.91
-%define release	2
+%define release	3
 
 # expansion of the previous part.
 # get the distro mark (eg rh70)
@@ -52,13 +52,13 @@ BuildRequires: 	automake
 
 # please check the FAQ for this question, and mail Bishop if there is
 # no FAQ entry.
-%define	_buildreq_	zlib-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel}
+%define	_buildreq_	zlib-devel %{!?_without_ssl:openssl-devel >= 0.9.7} %{!?NO_USE_LZO: lzo-devel}
 %define	_requires_	tun
 
 # Caldera has funny zlib
-%define	_buildreq_ol	libz-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO:lzo-devel}
+%define	_buildreq_ol	libz-devel %{!?_without_ssl:openssl-devel >= 0.9.7} %{!?NO_USE_LZO:lzo-devel}
 # Mandrake has unpredictable devel package names
-%define	_buildreq_mdk	zlib1-devel %{!?_without_ssl:libopenssl0-devel} %{!?NO_USE_LZO: liblzo1-devel}
+%define	_buildreq_mdk	zlib1-devel %{!?_without_ssl:libopenssl0-devel >= 0.9.7} %{!?NO_USE_LZO: liblzo1-devel}
 
 # normally, NOT depending on the tun package encourages other apps to
 # clobber the modules.conf file. In this case, the reverse is true,
@@ -66,6 +66,8 @@ BuildRequires: 	automake
 # We avoid a %null value by stating one redundantly.
 %define	_requires_fc	zlib
 %define	_buildreq_fc	zlib-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel}
+%define	_requires_rhas4	%_requires_fc
+%define	_buildreq_rhas4	%_buildreq_fc
 
 Requires:	%{_requires}
 BuildRequires:	%{_buildreq}
@@ -176,7 +178,12 @@ sbin/insserv etc/init.d/vtund
 /var/adm/fillup-templates/rc.config.vtund
 %endif
 
+#date +"%a %b %d %Y"
 %changelog
+* Thu Oct 07 2004 Bishop Clark (LC957) <bishop@platypus.bc.ca>	2.9.91-3
+- premliminary support for RHAS4 (FC2)
+- AES requires Openssl 097 or higher.
+
 * Wed Sep 14 2004 Bishop Clark (LC957) <bishop@platypus.bc.ca>	2.9.91-2
 - no change from 1.0.2, just bumping the package number to force a
   rebuild.
