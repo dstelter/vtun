@@ -1,6 +1,7 @@
 %define name	vtun
 %define version	2.6
 %define release	1.1
+%define	_enable_debug_packages %nil
 
 #this part NEEDS to be expanded
 %define IsSuSE	%( [ -f /etc/SuSE-release ] && echo 1 || echo 0 )
