@@ -188,7 +188,7 @@ fi
 - Allow to build as non-root (using new INSTALL_OWNER option)
 - Added vtund.conf.5 manpage
 - Allow compressed manpages
-- Added cleanup of old $RPM_BUILD_ROOT at beginning of %install stage
+- Added cleanup of old $RPM_BUILD_ROOT at beginning of %%install stage
 
 * Sat Mar 04 2000 Dag Wieers <dag@mind.be> 
 - Added USE_SOCKS compile option.
