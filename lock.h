@@ -1,4 +1,3 @@
-
 /*  
     VTun - Virtual Tunnel over TCP/IP network.
 
@@ -18,30 +17,14 @@
  */
 
 /*
- * $Id: llist.h,v 1.1.1.2 2000/03/28 17:19:30 maxk Exp $
+ * $Id: lock.h,v 1.1.1.1 2000/03/28 17:19:44 maxk Exp $
  */ 
+#ifndef _VTUN_LOCK_H
+#define _VTUN_LOCK_H
 
-#ifndef _VTUN_LLIST_H
-#define _VTUN_LLIST_H
+pid_t read_lock(char * host);
+int   create_lock(char * host);
+int   lock_host(struct vtun_host * host);
+void  unlock_host(struct vtun_host * host);
 
-struct llist_element {
-	struct llist_element * next;
-	void * data;
-};
-typedef struct llist_element llist_elm;
-
-typedef struct {
-	llist_elm * head;
-	llist_elm * tail;
-} llist;
-
-
-void llist_init(llist *l);
-int  llist_add(llist *l, void *d);
-int  llist_empty(llist *l);
-void * llist_trav(llist *l, int (*f)(void *d, void *u), void *u);
-int llist_copy(llist *l, llist *t, void* (*f)(void *d, void *u), void *u);
-void * llist_free(llist *l, int (*f)(void *d, void *u), void *u);
-
-
-#endif /* _VTUN_LLIST_H */
+#endif /* _VTUN_LOCK_H */

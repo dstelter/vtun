@@ -1,4 +1,3 @@
-
 /*  
     VTun - Virtual Tunnel over TCP/IP network.
 
@@ -18,30 +17,38 @@
  */
 
 /*
- * $Id: llist.h,v 1.1.1.2 2000/03/28 17:19:30 maxk Exp $
+ * $Id: pipe_dev.c,v 1.1.1.1 2000/03/28 17:19:55 maxk Exp $
  */ 
 
-#ifndef _VTUN_LLIST_H
-#define _VTUN_LLIST_H
+#include "config.h"
 
-struct llist_element {
-	struct llist_element * next;
-	void * data;
-};
-typedef struct llist_element llist_elm;
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <syslog.h>
+#include <sys/socket.h>
 
-typedef struct {
-	llist_elm * head;
-	llist_elm * tail;
-} llist;
+#include "vtun.h"
+#include "lib.h"
 
+/* 
+ * Create pipe. Return open fd. 
+ */  
+int pipe_alloc(int *fd)
+{
+    return socketpair(AF_UNIX, SOCK_STREAM, 0, fd);
+}
 
-void llist_init(llist *l);
-int  llist_add(llist *l, void *d);
-int  llist_empty(llist *l);
-void * llist_trav(llist *l, int (*f)(void *d, void *u), void *u);
-int llist_copy(llist *l, llist *t, void* (*f)(void *d, void *u), void *u);
-void * llist_free(llist *l, int (*f)(void *d, void *u), void *u);
+/* Write frames to pipe */
+int pipe_write(int fd, char *buf, int len)
+{
+    return write_n(fd, buf, len);
+}
 
-
-#endif /* _VTUN_LLIST_H */
+/* Read frames from pipe */
+int pipe_read(int fd, char *buf, int len)
+{
+    return read(fd, buf, len);
+}
