@@ -1,5 +1,5 @@
 ver 2.4:
-	 Numerous stability fixes.
+	 Numerous stability fixes. TCP driver fixes.
 	 Improved TUN driver support for Solaris 8.
 	 Fixed incorrect error handling in read_n/write_n. 
 	 Signal handling fix. Persist mode fixes.

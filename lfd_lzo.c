@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_lzo.c,v 1.1.1.2.2.1 2000/09/21 01:08:53 maxk Exp $
+ * $Id: lfd_lzo.c,v 1.1.1.2.2.2 2000/11/21 08:28:57 maxk Exp $
  */ 
 
 #include "config.h"
@@ -104,7 +104,7 @@ inline int expand_zbuf(int len)
 
 /* 
  * This functions _MUST_ consume all incoming bytes in one pass,
- * that's why we expand buffer dinamicly.
+ * that's why we expand buffer dynamicly.
  */  
 int comp_lzo(int len, char *in, char **out)
 { 
