@@ -159,6 +159,7 @@ fi
 %{_mandir}/man8/vtund.8*
 #%{_mandir}/man8/vtun.8*
 %{_mandir}/man5/vtund.conf.5*
+/etc/xinetd.d/vtun
 %if %{IsSuSE}
 %attr(755,root,root) %{_sbindir}/rcvtund
 /var/adm/fillup-templates/rc.config.vtund
