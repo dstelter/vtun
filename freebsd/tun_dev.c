@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: tun_dev.c,v 1.1.2.2 2000/11/20 08:15:53 maxk Exp $
+ * $Id: tun_dev.c,v 1.2.2.1 2000/11/20 08:15:53 maxk Exp $
  */ 
 
 #include "config.h"
@@ -29,8 +29,8 @@
 #include <string.h>
 #include <syslog.h>
 
-#include <sys/socket.h>
-#include <linux/if.h>
+#include <sys/ioctl.h>
+#include <net/if_tun.h>
 
 #include "vtun.h"
 #include "lib.h"
@@ -39,62 +39,39 @@
  * Allocate TUN device, returns opened fd. 
  * Stores dev name in the first arg(must be large enough).
  */  
-int tun_open_old(char *dev)
+int tun_open(char *dev)
 {
     char tunname[14];
-    int i, fd;
+    int i, fd = -1;
 
-    if( *dev ) {
+    if( *dev ){
        sprintf(tunname, "/dev/%s", dev);
-       return open(tunname, O_RDWR);
-    }
-
-    for(i=0; i < 255; i++){
-       sprintf(tunname, "/dev/tun%d", i);
-       /* Open device */
-       if( (fd=open(tunname, O_RDWR)) > 0 ){
-          sprintf(dev, "tun%d", i);
-          return fd;
+       fd = open(tunname, O_RDWR);
+    } else {
+       for(i=0; i < 255; i++){
+          sprintf(tunname, "/dev/tun%d", i);
+          /* Open device */
+          if( (fd=open(tunname, O_RDWR)) > 0 ){
+             sprintf(dev, "tun%d", i);
+             break;
+          }
        }
     }
-    return -1;
-}
-
-#ifdef HAVE_LINUX_IF_TUN_H /* New driver support */
-#include <linux/if_tun.h>
-int tun_open(char *dev)
-{
-    struct ifreq ifr;
-    int fd, err;
-
-    if( (fd = open("/dev/net/tun", O_RDWR)) < 0 )
-       return tun_open_old(dev);
-
-    memset(&ifr, 0, sizeof(ifr));
-    ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
-    if( *dev )
-       strncpy(ifr.ifr_name, dev, IFNAMSIZ);
-
-    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ){
-       close(fd);
-       return err;
-    } 
-    strcpy(dev, ifr.ifr_name);
+    if( fd > -1 ){
+       i=0;
+       /* Disable extended modes */
+       ioctl(fd, TUNSLMODE, &i);	
+       ioctl(fd, TUNSIFHEAD, &i);
+    }	
     return fd;
 }
-#else
-int tun_open(char *dev)
-{
-    return tun_open_old(dev);
-}
-#endif /* New driver support */
 
 int tun_close(int fd, char *dev)
 {
     return close(fd);
 }
 
-/* Read/write frames from TUN device */
+/* Read/write frames from/to TUN device */
 int tun_write(int fd, char *buf, int len)
 {
     return write(fd, buf, len);

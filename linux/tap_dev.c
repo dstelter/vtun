@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: tap_dev.c,v 1.1.2.2 2000/09/14 14:57:20 maxk Exp $
+ * $Id: tap_dev.c,v 1.1.2.3 2000/11/20 08:15:53 maxk Exp $
  */ 
 
 #include "config.h"
@@ -39,7 +39,7 @@
  * Allocate Ether TAP device, returns opened fd. 
  * Stores dev name in the first arg(must be large enough).
  */ 
-int tap_alloc_old(char *dev)
+int tap_open_old(char *dev)
 {
     char tapname[14];
     int i, fd;
@@ -62,13 +62,13 @@ int tap_alloc_old(char *dev)
 
 #ifdef HAVE_LINUX_IF_TUN_H /* New driver support */
 #include <linux/if_tun.h> 
-int tap_alloc(char *dev)
+int tap_open(char *dev)
 {
     struct ifreq ifr;
     int fd, err;
 
     if( (fd = open("/dev/net/tun", O_RDWR)) < 0 )
-       return tap_alloc_old(dev);
+       return tap_open_old(dev);
 
     memset(&ifr, 0, sizeof(ifr));
     ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
@@ -83,11 +83,16 @@ int tap_alloc(char *dev)
     return fd;
 } 
 #else
-int tap_alloc(char *dev)
+int tap_open(char *dev)
 {
-    return tap_alloc_old(dev);
+    return tap_open_old(dev);
 }
 #endif /* New driver support */
+
+int tap_close(int fd, char *dev)
+{
+    return close(fd);
+}
 
 /* Write frames to TAP device */
 int tap_write(int fd, char *buf, int len)

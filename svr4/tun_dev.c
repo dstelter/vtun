@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: tun_dev.c,v 1.2.2.1 2000/11/20 07:57:33 maxk Exp $
+ * $Id: tun_dev.c,v 1.2.2.2 2000/11/20 08:15:53 maxk Exp $
  */ 
 
 #include "config.h"
@@ -155,6 +155,7 @@ int tun_close(int fd, char *dev)
     }
 
     close(ip_fd); close(fd);
+    return 0;
 }
 
 int tun_write(int fd, char *buf, int len)

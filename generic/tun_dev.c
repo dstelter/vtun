@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: tun_dev.c,v 1.1.1.1 2000/03/28 17:19:56 maxk Exp $
+ * $Id: tun_dev.c,v 1.2.2.1 2000/11/20 08:15:53 maxk Exp $
  */ 
 
 #include "config.h"
@@ -36,7 +36,7 @@
  * Allocate TUN device, returns opened fd. 
  * Stores dev name in the first arg(must be large enough).
  */  
-int tun_alloc(char *dev)
+int tun_open(char *dev)
 {
     char tunname[14];
     int i, fd;
@@ -57,10 +57,15 @@ int tun_alloc(char *dev)
     return -1;
 }
 
+int tun_close(int fd, char *dev)
+{
+    return close(fd);
+}
+
 /* Read/write frames from TUN device */
 int tun_write(int fd, char *buf, int len)
 {
-    return write_n(fd, buf, len);
+    return write(fd, buf, len);
 }
 
 int tun_read(int fd, char *buf, int len)
