@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: server.c,v 1.4.2.2 2000/09/14 14:57:20 maxk Exp $
+ * $Id: server.c,v 1.4.2.3 2001/06/07 15:38:36 maxk Exp $
  */ 
 
 #include "config.h"
@@ -70,6 +70,8 @@ void connection(int sock)
      }
 
      ip = strdup(inet_ntoa(cl_addr.sin_addr));
+
+     io_init();
 
      if( (host=auth_server(sock)) ){	
         sa.sa_handler=SIG_IGN;

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lib.h,v 1.2.2.1 2000/07/06 04:17:31 maxk Exp $
+ * $Id: lib.h,v 1.2.2.2 2001/06/07 15:37:16 maxk Exp $
  */ 
 #ifndef _VTUN_LIB_H
 #define _VTUN_LIB_H
@@ -48,12 +48,25 @@ int print_p(int f, const char *ftm, ...);
 int  run_cmd(void *d, void *opt);
 void free_sopt(struct vtun_sopt *opt);
 
+/* IO cancelation */
+extern volatile int __io_canceled;
+
+static inline void io_init(void)
+{
+	__io_canceled = 0;
+}
+
+static inline void io_cancel(void)
+{
+	__io_canceled = 1;
+}
+
 /* Read exactly len bytes (Signal safe)*/
-extern inline int read_n(int fd, char *buf, int len)
+static inline int read_n(int fd, char *buf, int len)
 {
 	register int t=0, w;
 
-	do {
+	while (!__io_canceled && len > 0) {
 	  if( (w = read(fd, buf, len)) < 0 ){
 	     if( errno == EINTR || errno == EAGAIN )
  	        continue;
@@ -62,17 +75,17 @@ extern inline int read_n(int fd, char *buf, int len)
 	  if( !w )
 	     return 0;
 	  len -= w; buf += w; t += w;
-	} while(len > 0);
+	}
 
 	return t;
 }   
 
 /* Write exactly len bytes (Signal safe)*/
-extern inline int write_n(int fd, char *buf, int len)
+static inline int write_n(int fd, char *buf, int len)
 {
 	register int t=0, w;
 
-	do {
+	while (!__io_canceled && len > 0) {
  	  if( (w = write(fd, buf, len)) < 0 ){
 	     if( errno == EINTR || errno == EAGAIN )
   	         continue;
@@ -81,7 +94,7 @@ extern inline int write_n(int fd, char *buf, int len)
 	  if( !w )
 	     return 0;
 	  len -= w; buf += w; t += w;
-	} while(len > 0);
+	}
 
 	return t;
 }
