@@ -1,6 +1,6 @@
 %define name	vtun
 %define version	2.5
-%define release	3
+%define release	4
 
 #this part NEEDS to be expanded
 %define IsSuSE	%( [ -f /etc/SuSE-release ] && echo 1 || echo 0 )
@@ -35,7 +35,7 @@ Vendor: Maxim Krasnyansky <max_mk@yahoo.com>
 Packager: Bishop Clark (LC957) <bishop@platypus.bc.ca>
 BuildRoot: /var/tmp/%{name}-%{version}-build
 Obsoletes: vppp
-Buildrequires: %{!?NO_USE_LZO:lzo-devel}
+%{!?NO_USE_LZO:Buildrequires: lzo-devel}
 
 %description
 VTun provides the method for creating Virtual Tunnels over TCP/IP
@@ -66,12 +66,13 @@ make %{?IsSuSE: LOCK_DIR=%{lock_dir} STAT_DIR=/var/log/vtunnel}
 
 %install
 [ $RPM_BUILD_ROOT != / ] && rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT%{_sbindir}
-install -d $RPM_BUILD_ROOT%{_mandir}/man8
-install -d $RPM_BUILD_ROOT%{_mandir}/man5
+#deprecated - please check that this deletion does not harm SuSE build
+#install -d $RPM_BUILD_ROOT%{_sbindir}
+#install -d $RPM_BUILD_ROOT%{_mandir}/man8
+#install -d $RPM_BUILD_ROOT%{_mandir}/man5
+#install -d $RPM_BUILD_ROOT%{log_dir}
+#install -d $RPM_BUILD_ROOT%{lock_dir}
 install -d $RPM_BUILD_ROOT%{rc_dir}
-install -d $RPM_BUILD_ROOT%{log_dir}
-install -d $RPM_BUILD_ROOT%{lock_dir}
  if [ x%{IsSuSE} = x1 ]; then
 install scripts/vtund.rc.suse $RPM_BUILD_ROOT%{rc_dir}/vtund
  else 
@@ -81,22 +82,31 @@ make install SBIN_DIR=$RPM_BUILD_ROOT%{_sbindir} \
         MAN_DIR=$RPM_BUILD_ROOT%{_mandir} \
         ETC_DIR=$RPM_BUILD_ROOT/etc \
         VAR_DIR=$RPM_BUILD_ROOT%{_var} \
-  %{?IsSuSE:        LOCK_DIR=%{lock_dir} } \
+        LOCK_DIR=$RPM_BUILD_ROOT%{lock_dir} \
 	INSTALL_OWNER=
 
 if [ x%{IsSuSE} = x1 ]; then
 # SuSE RC.CONFIG templates
 install -d $RPM_BUILD_ROOT/var/adm/fillup-templates
+install -m 644 scripts/vtund.rc.suse.config $RPM_BUILD_ROOT/var/adm/fillup-templates/rc.config.vtund
 
-#install -m 644 scripts/vtund.rc.suse.config $RPM_BUILD_ROOT/var/adm/fillup-templates/rc.config.vtund
-#  file does not exist.  Needs to go into CVS.  Watch the file name change.
-#  remove this comment before final roll. - B
+# rcvtund
+ln -sf ../..%{rc_dir}/vtund $RPM_BUILD_ROOT/usr/sbin/rcvtund
 
-# rc
-install -m 744 scripts/vtund.rc.suse.rcvtund $RPM_BUILD_ROOT%{rc_dir}/vtund
-#  file does not exist.  Needs to go into CVS.  Watch the file name change.
-#  remove this comment before final roll. - B
-ln -sf ../..%{rc_dir}/vtund $RPM_BUILD_ROOT%{_sbindir}/rcvtund
+fi
+
+%post
+if [ x%{IsSuSE} = x1 ]; then
+#rc config
+echo "Updating etc/rc.config..."
+if [ -x bin/fillup ] ; then
+  bin/fillup -q -d = etc/rc.config var/adm/fillup-templates/rc.config.vtund
+else
+  echo "ERROR: fillup not found. This should not happen. Please compare"
+  echo "etc/rc.config and var/adm/fillup-templates/rc.config.vtund and"
+  echo "update by hand."
+fi
+sbin/insserv etc/init.d/vtund
 fi
 
 %clean
@@ -114,8 +124,18 @@ fi
 %{_mandir}/man8/vtund.8*
 #%{_mandir}/man8/vtun.8*
 %{_mandir}/man5/vtund.conf.5*
+%if %{IsSuSE}
+%attr(755,root,root) %{_sbindir}/rcvtund
+/var/adm/fillup-templates/rc.config.vtund
+%endif
 
 %changelog
+* Tue Jun 5 2002 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.5-4
+- Deprecated redundant directory creation in install
+- More undisputed patches by Willems Luc for SuSE support
+- Update of one SuSE config file, addition of another as per 
+  Willems Luc
+
 * Mon Jan 21 2002 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.5-3
 - Macros updating as per 2.5 for better cross-distro build
 - Added NO_USE_LZO compile option as per Willems Luc
