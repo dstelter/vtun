@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: tun_dev.c,v 1.1.2.2 2000/11/20 08:15:53 maxk Exp $
+ * $Id: tun_dev.c,v 1.1.2.3 2001/03/08 03:55:25 maxk Exp $
  */ 
 
 #include "config.h"
@@ -29,6 +29,7 @@
 #include <string.h>
 #include <syslog.h>
 
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <linux/if.h>
 
