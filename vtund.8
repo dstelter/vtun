@@ -1,5 +1,5 @@
-.\" Manual page [] for vtund
-.\" $Id: vtund.8,v 2.0 02/17/2000 Maxim Krasnyansky
+.\" Manual page for vtund
+.\" $Id: vtund.8,v 1.4.2.1 2000/07/24 01:58:19 maxk Exp $
 .\" SH section heading
 .\" SS subsection heading
 .\" LP paragraph
@@ -15,6 +15,9 @@ vtund \- VTun(Virtual Tunnel) daemon.
 >
 [ 
 .I -i 
+] 
+[ 
+.I -n 
 ] 
 [ 
 .I -f file 
@@ -36,6 +39,9 @@ vtund \- VTun(Virtual Tunnel) daemon.
 [ 
 .I -t timeout 
 ]
+[ 
+.I -n 
+] 
 <
 .I host 
 >
@@ -62,7 +68,10 @@ to any kernel parts.
 .I -f file 
 Read config information from the
 .I file
-By default vtund uses /etc/vtund.conf
+(full path required). By default vtund uses /etc/vtund.conf
+.TP
+.I -n 
+Do not become daemon.
 .SS Server mode: 
 .TP
 .I -s
@@ -105,15 +114,18 @@ specified.
 .SH FILES
 .TP
 .B /etc/vtund.conf
-Main configuration file with hosts and other information. It specifies 
-authentication keys, speed of connections, options to pass to the 
-programs, etc. Format of the file completely described in example 
-provided with distribution.
+Main configuration file with hosts and other information. 
+See vtund.conf example provided with distribution and vtund.conf(5) 
+for more information.
 .TP
-.B /var/log/vtund/host_X
-Connection statistic log for particular host_X.
+.B /var/lock/vtund/
+Session lock files. 
+.TP
+.B /var/log/vtund/
+Connection statistic log files.
+.br
 Format:
-Date Uncomp_In Uncomp_Out Comp_In Comp_Out
+   Date Uncomp_In Uncomp_Out Comp_In Comp_Out
 .SH SIGNALS
 .TP
 .B SIGHUP
@@ -123,11 +135,10 @@ This signal causes vtund(server mode) to reread config file.
 This signal causes vtund to reset statistic counters. 
 .SH SEE ALSO
 .TP
-pppd(8)
+vtund.conf(5)
 .SH NOTES 
 .LP
-VTun has been derived from VPPP package by Maxim Krasnyansky.
-.LP
-Comments, ideas and if possible patches are always welcome.
+This product includes software developed by the OpenSSL Project
+for use in the OpenSSL Toolkit. (http://www.openssl.org/)
 .SH AUTHORS
 Maxim Krasnyansky <max_mk@yahoo.com>

@@ -21,9 +21,11 @@ YES.
 1.5 Where can I download VTun package ?
 You can download complete VTun package from the following web sites:
 Primary:
-  http://vtun.netpedia.net
+  http://vtun.sourceforge.net
 Mirrors:
   http://vtun.saol.com
+  http://vtun.speedway.net
+  http://vtun.euronet.be
 
 1.6 Can I establish VTun tunnel with Windows machine ?
 Unfortunately there is no VTun client for Windows yet.
@@ -40,19 +42,20 @@ It doesn't support PPTP, L2TP, IPsec.
 VTun was developed on Linux and then ported to several other OS:
    Linux (any glibc based distribution)
    Solaris
-   FreeBSD and other BSD clones.
+   FreeBSD, OpenBSD, NetBSD and other BSD clones.
 
 1.10 Does VTun server support multiple clients ?
-Sure. Number of clients is limited only by the capabilities of your
-machine.
+Sure. Number of the clients is limited only by the capabilities of 
+your machine.
 
 1.11 How many tunnels can VTun handle ?
-VTun doesn't have any limit on number of tunnels.
+Number of the tunnels is limited only by the capabilities of your
+machine.
 
 1.12 What do I need to run VTun ?
 You should install and configure VTun package and read documentation.
 Usually you'll need: 
-   Universal TUN/TAP device driver (http://vtun.netpedia.net/tun)
+   Universal TUN/TAP device driver (http://vtun.sourceforge.net/tun)
    PPP driver and pppd.
 
 1.13 What hardware do I need to run VTun ?
@@ -72,7 +75,7 @@ Real life examples:
 1.14 VTun supports many tunnel types, which type should I use ?
 Well, it is not very easy to answer this question in the FAQ.
 Please read documentation which comes with VTun package and visit 
-VTun web site http://vtun.netpedia.net
+VTun web site http://vtun.sourceforge.net
 
 1.15 Where can I find configuration recommendations and examples ?
 VTun package contains several config file samples.
@@ -90,17 +93,7 @@ Explanation is the same as with above case. Use TCP for PPP tunnels or
 use TUN instead of PPP, since tun device is completely the same with 
 ppp device for the kernel. 
 
-1.18 Why do tunnels over TCP sometimes become slow after long or heavy use ?
-People usually report this problem for PPP over TCP on Linux. I can't
-fully explain it and need help to fix it. It seems that it is a
-kernel TCP stack problem. I've inspected every possible case
-(pty driver, VTun's linkfd and modules, etc) and haven't found the
-reason. I have personally seen it only with the old 2.0.xx Linux kernels. 
-Another possible cause is that some firewall setups could affect 
-TCP speed. 
-Again, any help regarding this problem is highly appreciated.
-
-1.19 Why do routes specified after 'ppp' command in config file produce errors and don't install correctly ?  
+1.18 Why do routes specified after 'ppp' command in config file produce errors and don't install correctly ?  
 Actually there is no straight way to determine when pppd has established 
 connection with the other end. VTun execute those route commands right 
 after the launch of pppd and if PPP link is not established, route 
@@ -108,9 +101,9 @@ commands will fail. Since version 2.0b3, VTun delays 10 seconds before
 issuing the route commands, which should fix almost all cases.  
 I'll think about more elegant way to fix this problem.
 
-1.20 How secure is VTun ?
-Well. VTun doesn't try to be MOST secure tunneling software in the 
-world, it tries to be fast, stable, reach of features, easy to use 
+1.19 How secure is VTun ?
+Well. VTun doesn't try to be the MOST secure tunneling software in the 
+world, it tries to be fast, stable, rich of features, easy to use 
 and secure enough instead.
 VTun uses Challenge Based Authentication and doesn't transfer passwords 
 in clear text. Encryption module uses MD5 for 128 bits key generation 
@@ -118,31 +111,33 @@ and BlowFish algorithm for actual data encryption.
 There could be some weaknesses in key generation method, we will try 
 to address them in future releases. 
 
-1.21 Who has developed so nice and cool software ?
+1.20 Who has developed so nice and cool software ?
 Thanks :). You can find list of VTun team members on the web site or
 in the 'Credits' file in VTun package.  
 
-1.22 I don't like VTun where can I send complains ?
+1.21 I don't like VTun where can I send complains ?
 You can send them to /dev/null. 
 
-1.23 Where can I get more information about VTun ?
+1.22 Where can I get more information about VTun ?
 VTun package contains: 
    Manual page for vtund.
+   Manual page for configuration file.
    Fully documented config file.
    Several README files.
 
 2. Error Messages
 2.1 Why do I see no vtund log and error messages ?
-On several Unices, FreeBSD for example, syslog doesn't log message with INFO priority, 
-by default. 
-You should add "*.info;" to the line with /var/log/messages in /etc/syslog.conf.
+On several Unices, FreeBSD for example, syslog doesn't log message 
+with INFO priority, by default. 
+You should add "*.info;" to the line with /var/log/messages in 
+/etc/syslog.conf.
 
 2.2 Why do I get "Input/output error" pppd error message ?
 This usually means that vtund on other side has dropped connection,
 check logs on other side.
 
 2.3 Why do I get "couldn't find any suitable secret (password)" pppd error message ?
-New versions of pppd use authentication be default.
+New versions of pppd use authentication by default.
 Just add "noauth" option to ppp command.
 
 2.4 Why do I get "XXXX returned error Y" error message ?
@@ -157,7 +152,7 @@ Just add "nomagic" option to ppp command.
 This error means that Universal TUN/TAP driver module is not loaded
 or you do not have correct /dev/tunXX or /dev/tapXX device nodes.
 Make sure you have installed and configured Universal TUN/TAP device
-driver (http://vtun.netpedia.net/tun)
+driver (http://vtun.sourceforge.net/tun)
 
 2.7 Why do I get "LZO compression is not supported" error message ?
 This error means that LZO compression is not compiled in.

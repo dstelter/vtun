@@ -1,6 +1,6 @@
 ver 2.4:
 	 Fixed command path parsing. Fixed incorrect error handling in 
-	 read_n/write_n. Singnal handling fix.  
+	 read_n/write_n. Signal handling fix. Spelling fix.
 
 ver 2.3:
 	 Fixed incorrect error handling in UDP and TCP drivers. Makefile 

@@ -18,8 +18,14 @@
  */
 
 /*
- * $Id: lfd_encrypt.c,v 1.1.1.2 2000/03/28 17:18:37 maxk Exp $
+ * $Id: lfd_encrypt.c,v 1.2.2.1 2000/07/24 01:58:19 maxk Exp $
  */ 
+
+/*
+   Encryption module uses software developed by the OpenSSL Project
+   for use in the OpenSSL Toolkit. (http://www.openssl.org/)       
+   Copyright (c) 1998-2000 The OpenSSL Project.  All rights reserved.
+ */
 
 /*
  * This lfd_encrypt module uses MD5 to create 128 bits encryption
@@ -57,7 +63,7 @@ int alloc_encrypt(struct vtun_host *host)
 
    BF_set_key(&key, ENC_KEY_SIZE, MD5(host->passwd,strlen(host->passwd),NULL));
 
-   syslog(LOG_INFO, "Encryption initialized.");
+   syslog(LOG_INFO, "BlowFish encryption initialized");
    return 0;
 }
 

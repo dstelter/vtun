@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: netlib.c,v 1.1.1.1 2000/03/28 17:19:47 maxk Exp $
+ * $Id: netlib.c,v 1.7.2.1 2000/07/24 01:58:19 maxk Exp $
  */ 
 
 #include "config.h"
@@ -124,7 +124,9 @@ unsigned long getifaddr(char * ifname)
      if( (s = socket(AF_INET, SOCK_DGRAM, 0)) == -1 )
         return -1;
 
-     strcpy(ifr.ifr_name, ifname);
+     strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
+     ifr.ifr_name[sizeof(ifr.ifr_name)-1]='\0';
+
      if( ioctl(s, SIOCGIFADDR, &ifr) < 0 ){
         close(s);
         return -1;
@@ -155,7 +157,7 @@ int udp_session(struct vtun_host *host, time_t timeout)
      setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)); 
     
      /* Set local address and port */
-     local_addr(&saddr, host);
+     local_addr(&saddr, host, 1);
      if( bind(s,(struct sockaddr *)&saddr,sizeof(saddr)) ){
         syslog(LOG_ERR,"Can't bind to the socket");
         return -1;
@@ -169,7 +171,7 @@ int udp_session(struct vtun_host *host, time_t timeout)
 
      /* Write port of the new UDP socket */
      port = saddr.sin_port;
-     if( write_n(host->rmt_fd,&port,sizeof(short)) < 0 ){
+     if( write_n(host->rmt_fd,(char *)&port,sizeof(short)) < 0 ){
         syslog(LOG_ERR,"Can't write port number");
         return -1;
      }
@@ -197,43 +199,50 @@ int udp_session(struct vtun_host *host, time_t timeout)
      /* Close TCP socket and replace with UDP socket */	
      close(host->rmt_fd); 
      host->rmt_fd = s;	
+
+     syslog(LOG_INFO,"UDP connection initialized");
      return s;
 }
 
 /* Set local address */
-int local_addr(struct sockaddr_in *addr, struct vtun_host *host)
+int local_addr(struct sockaddr_in *addr, struct vtun_host *host, int con)
 {
      struct hostent * hent;
+     int opt;
 
-     memset(addr, 0, sizeof(struct sockaddr_in));
-
-    /* We can't use getsockname to get an addr of already connected 
-     * socket because it reports port and family only. 
-     */
-
-     switch( host->src_addr.type ){
-        case VTUN_ADDR_IFACE:
-           if( !( addr->sin_addr.s_addr = getifaddr(host->src_addr.name)) ){
-              syslog(LOG_ERR,"Can't get address of interface %s", 
+     if( con ){
+        /* Use address of the already connected socket. */
+        opt = sizeof(struct sockaddr_in);
+        if( getsockname(host->rmt_fd, (struct sockaddr *)addr, &opt) < 0 ){
+           syslog(LOG_ERR,"Can't get local socket address");
+           return -1; 
+        }
+     } else {
+        memset(addr, 0, sizeof(struct sockaddr_in));
+        addr->sin_family = AF_INET;
+        switch( host->src_addr.type ){
+           case VTUN_ADDR_IFACE:
+              if( !( addr->sin_addr.s_addr = getifaddr(host->src_addr.name)) ){
+                 syslog(LOG_ERR,"Can't get address of interface %s", 
 					host->src_addr.name);
-              return -1;
-           }
-	   break;
-        case VTUN_ADDR_NAME:
-           if( !(hent = gethostbyname(host->src_addr.name)) ){
-              syslog(LOG_ERR,"Can't resolv local address %s", 
+                 return -1;
+              }
+	      break;
+           case VTUN_ADDR_NAME:
+              if( !(hent = gethostbyname(host->src_addr.name)) ){
+                 syslog(LOG_ERR,"Can't resolv local address %s", 
 					host->src_addr.name);
-              return -1;
-           }
-           addr->sin_addr.s_addr = *(unsigned long *)hent->h_addr; 
-	   break;
-        default:
-           addr->sin_addr.s_addr = INADDR_ANY; 
-           break;
+                 return -1;
+              }
+              addr->sin_addr.s_addr = *(unsigned long *)hent->h_addr; 
+	      break;
+           default:
+              addr->sin_addr.s_addr = INADDR_ANY; 
+              break;
+        }
      }
-
-     addr->sin_family = AF_INET;
-     addr->sin_port = htons(host->src_addr.port);
+     if( host->src_addr.port )	
+        addr->sin_port = htons(host->src_addr.port);
 
      host->sopt.laddr = strdup(inet_ntoa(addr->sin_addr));
 
@@ -253,7 +262,7 @@ int server_addr(struct sockaddr_in *addr, struct vtun_host *host)
       * address can be dynamic.
       */
      if( !(hent = gethostbyname(vtun.svr_name)) ){
-        syslog(LOG_ERR, "Can't resolv server address %s", vtun.svr_name);
+        syslog(LOG_ERR, "Can't resolv server address: %s", vtun.svr_name);
         return -1;
      }
      addr->sin_addr.s_addr = *(unsigned long *)hent->h_addr; 
