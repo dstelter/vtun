@@ -58,6 +58,11 @@ BuildRequires: 	automake
 # Mandrake has unpredictable devel package names
 %define	_requires_mdk	tun zlib1-devel %{!?_without_ssl:libopenssl0-devel} %{!?NO_USE_LZO: liblzo1-devel}
 
+# normally, NOT depending on the tun package encourages other apps to
+# clobber the modules.conf file. In this case, the reverse is true,
+# since FCx actually includes all the necessary entries.  So no tun.
+%define	_requires_fc	libz-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel}
+
 Requires:	%{_requires}
 
 %description
