@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: client.c,v 1.5.2.7 2002/04/25 09:19:50 bergolth Exp $
+ * client.c,v 1.5.2.7 2002/04/25 09:19:50 bergolth Exp
  */ 
 
 #include "config.h"
@@ -65,13 +65,13 @@ void client(struct vtun_host *host)
      sa.sa_handler=SIG_IGN;
      sa.sa_flags = SA_NOCLDWAIT;
      sigaction(SIGHUP,&sa,NULL);
-     sigaction(SIGINT,&sa,NULL);
      sigaction(SIGQUIT,&sa,NULL);
      sigaction(SIGPIPE,&sa,NULL);
      sigaction(SIGCHLD,&sa,NULL);
 
      sa.sa_handler=sig_term;
      sigaction(SIGTERM,&sa,NULL);
+     sigaction(SIGINT,&sa,NULL);
  
      client_term = 0; reconnect = 0;
      while( (!client_term) || (client_term == VTUN_SIG_HUP) ){

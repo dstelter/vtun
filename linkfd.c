@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: linkfd.c,v 1.4.2.11 2002/04/25 09:19:50 bergolth Exp $
+ * linkfd.c,v 1.4.2.11 2002/04/25 09:19:50 bergolth Exp
  */
 
 #include "config.h"
@@ -325,7 +325,7 @@ int lfd_linker(void)
 /* Link remote and local file descriptors */ 
 int linkfd(struct vtun_host *host)
 {
-     struct sigaction sa, sa_oldterm, sa_oldhup;
+     struct sigaction sa, sa_oldterm, sa_oldint, sa_oldhup;
      int old_prio;
 
      lfd_host = host;
@@ -352,6 +352,7 @@ int linkfd(struct vtun_host *host)
      memset(&sa, 0, sizeof(sa));
      sa.sa_handler=sig_term;
      sigaction(SIGTERM,&sa,&sa_oldterm);
+     sigaction(SIGINT,&sa,&sa_oldint);
      sa.sa_handler=sig_hup;
      sigaction(SIGHUP,&sa,&sa_oldhup);
 
@@ -384,6 +385,7 @@ int linkfd(struct vtun_host *host)
      lfd_free_mod();
      
      sigaction(SIGTERM,&sa_oldterm,NULL);
+     sigaction(SIGINT,&sa_oldint,NULL);
      sigaction(SIGHUP,&sa_oldhup,NULL);
 
      setpriority(PRIO_PROCESS,0,old_prio);
