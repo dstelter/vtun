@@ -38,28 +38,21 @@ Obsoletes: 	vppp
 BuildRequires:  autoconf
 BuildRequires:  automake
 
-%{!?NO_USE_LZO:Buildrequires: 	lzo-devel}
 BuildRequires: 	bison
 BuildRequires: 	flex
 BuildRequires: 	autoconf
 BuildRequires: 	automake
 
-%if %( rpm -q OpenLinux >/dev/null 2>/dev/null && echo 1 || echo 0 )
-
 # Caldera has funny zlib
-BuildRequires:	libz-devel openssl-devel
-%elseif %( rpm -q mandrake-release >/dev/null 2>/dev/null && echo 1 || echo 0 )
-# Mandrake has funny devel package names that are hard to predict
-BuildRequires:	zlib-devel libopenssl0-devel
-%else 
-BuildRequires:	zlib-devel openssl-devel
-%endif
+# Mandrake has unpredictable devel package names that just make no
+#  sense and force me to have this outrageously hideous and
+#  non-line-breakable statement.
 
-#if %( rpm -q mandrake-release >/dev/null 2>/dev/null && echo 1 || echo 0 )
-#{!?_without_ssl:BuildRequires: libopenssl0-devel }
-#else
-#{!?_without_ssl:BuildRequires:	openssl-devel }
-#endif
+BuildRequires:	%((rpm -q OpenLinux >/dev/null 2>/dev/null && echo libz-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO:lzo-devel}) || (rpm -q mandrake-release >/dev/null 2>/dev/null && echo zlib1-devel %{!?_without_ssl:libopenssl0-devel} %{!?NO_USE_LZO: liblzo1-devel}) || echo zlib-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel})
+
+# Yes, there is a better way to do all this, but I do not feel like
+# porting the dis/tro and massively layered macro tech in here.  That
+# can stay in my .rpmmacros, thanks.
 
 %description
 VTun provides the method for creating Virtual Tunnels over TCP/IP
