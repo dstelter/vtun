@@ -1,3 +1,5 @@
+# $Id: vtun.spec,v 1.7.2.33.2.18 2005/02/23 21:41:54 mtbishop Exp $
+
 # By default, builds without socks-support.
 # To build with socks-support, issue:
 #   rpm --define "_with_socks yes" ...
@@ -9,11 +11,11 @@
 # define variables here for older RPM versions.
 %define name	vtun
 %define version	2.9.91
-%define release	3
+%define release	4
 
 # expansion of the previous part.
 # get the distro mark (eg rh70)
-%define	_dis	%(case `rpm -qf /etc/issue 2>/dev/null` in (redhat-*) echo rh;; (mandrake-*) echo mdk ;; (fedora-*) echo fc ;; (openlinux-*) echo ol ;; (whitebox-*) echo wb ;; (SuSE-*) echo suse ;; esac)
+%define	_dis	%(case `rpm -qf /etc/issue 2>/dev/null` in (redhat-*) echo rh;; (mandrake-*) echo mdk ;; (fedora-*) echo fc ;; (openlinux-*) echo ol ;; (whitebox-*) echo wb ;; (xos-*) echo xos ;;(SuSE-*) echo suse ;; esac)
 %define _tro	%(rpm -qf --qf "%%{version}" /etc/issue | sed 's/\\.//g' )
 
 %define	rc_dir_suse	/etc/init.d
@@ -66,8 +68,8 @@ BuildRequires: 	automake
 # We avoid a %null value by stating one redundantly.
 %define	_requires_fc	zlib
 %define	_buildreq_fc	zlib-devel %{!?_without_ssl:openssl-devel} %{!?_without_lzo: lzo-devel}
-%define	_requires_rhas4	%_requires_fc
-%define	_buildreq_rhas4	%_buildreq_fc
+%define	_requires_rhel4	%_requires_fc
+%define	_buildreq_rhel4	%_buildreq_fc
 
 Requires:	%{_requires}
 BuildRequires:	%{_buildreq}
@@ -182,6 +184,10 @@ sbin/insserv etc/init.d/vtund
 
 #date +"%a %b %d %Y"
 %changelog
+* Wed Feb 23 2005 Bishop Clark (LC957) <bishop@platypus.bc.ca>	2.9.91-4
+- added XOS macros.
+- s/rhas4/rhel4/ in hopes, although Ihaven't seen it yet.
+
 * Thu Oct 07 2004 Bishop Clark (LC957) <bishop@platypus.bc.ca>	2.9.91-3
 - macros support --with/out conditional command line
 - premliminary support for RHAS4 (FC2)
