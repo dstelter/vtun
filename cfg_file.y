@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: cfg_file.y,v 1.1.1.2.2.10 2001/09/06 19:03:26 maxk Exp $
+ * $Id: cfg_file.y,v 1.1.1.2.2.11 2001/12/29 17:01:01 bergolth Exp $
  */ 
 
 #include "config.h"
@@ -182,11 +182,6 @@ option:  '\n'
 
   | K_SYSLOG  syslog_opt
 
-  | K_PERSIST NUM 	{ 
-			  if(vtun.persist == -1) 
-			     vtun.persist = $2; 	
-			}
-
   | K_ERROR		{
 			  cfg_error("Unknown option '%s'",$1);
 			  YYABORT;
@@ -279,10 +274,7 @@ host_option: '\n'
 			}
 
   | K_PERSIST NUM 	{ 
-			  if( $2 ) 
-			     parse_host->flags |= VTUN_PERSIST;
-			  else	
-			     parse_host->flags &= ~VTUN_PERSIST;
+	      		  parse_host->persist = $2;
 
 			  if(vtun.persist == -1) 
 			     vtun.persist = $2; 	
