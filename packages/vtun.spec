@@ -1,5 +1,5 @@
 %define name	vtun
-%define version	2.5.3
+%define version	2.5.4
 %define release	1
 
 #this part NEEDS to be expanded
@@ -22,32 +22,34 @@
 # To disable LZO, issue:
 #   rpm --define "NO_USE_LZO yes" ...
 
-Name: %{name}
-Version: %{version}
-Release: %{release}
-Copyright: GPL
-Group: System Environment/Daemons
-Url: http://vtun.sourceforge.net/
-Source: http://vtun.sourceforge.net/%{name}-%{version}.tar.gz
-Summary: Virtual tunnel over TCP/IP networks.
-Vendor: Maxim Krasnyansky <max_mk@yahoo.com>
-#Packager: Dag Wieers <dag@mind.be> 
-Packager: Bishop Clark (LC957) <bishop@platypus.bc.ca>
-BuildRoot: %{?_tmppath:%{_tmppath}}%{!?_tmppath:%{tmpdir}}/%{name}-%{version}-root-%(id -u -n)
-Obsoletes: vppp
+Name: 		%{name}
+Version: 	%{version}
+Release: 	%{release}
+Copyright: 	GPL
+Group: 		System Environment/Daemons
+Url: 		http://vtun.sourceforge.net/
+Source: 	http://vtun.sourceforge.net/%{name}-%{version}.tar.gz
+Summary: 	Virtual tunnel over TCP/IP networks.
+Summary(pl):	Wirtualne tunele poprzez sieci TCP/IP
+Vendor: 	Maxim Krasnyansky <max_mk@yahoo.com>
+Packager: 	Bishop Clark (LC957) <bishop@platypus.bc.ca>
+BuildRoot: 	%{?_tmppath:%{_tmppath}}%{!?_tmppath:%{tmpdir}}/%{name}-%{version}-root-%(id -u -n)
+Obsoletes: 	vppp
+BuildRequires:  autoconf
+BuildRequires:  automake
 
-%{!?NO_USE_LZO:Buildrequires: lzo-devel}
-%{!?_without_ssl:BuildRequires: openssl-devel }
-BuildRequires: bison
-BuildRequires: flex
-BuildRequires: autoconf
-BuildRequires: automake
+%{!?NO_USE_LZO:Buildrequires: 	lzo-devel}
+%{!?_without_ssl:BuildRequires:	openssl-devel }
+BuildRequires: 	bison
+BuildRequires: 	flex
+BuildRequires: 	autoconf
+BuildRequires: 	automake
 
 # Caldera has funny zlib
 %if %( rpm -q OpenLinux >/dev/null 2>/dev/null && echo 0 || echo 1 )
-BuildRequires: zlib-devel
+BuildRequires:	zlib-devel
 %else
-BuildRequires: libz-devel
+BuildRequires:	libz-devel
 %endif
 
 %description
@@ -64,9 +66,19 @@ not require modification to any kernel parts.
 This package is built with%{!?USE_SOCKS:out} SOCKS-support.
 %{?NO_USE_LZO:This package is built without LZO support.}
 
+%description -l pl
+VTun umo¿liwia tworzenie Wirtualnych Tunelu poprzez sieci TCP/IP wraz
+z przydzielaniem pasma, kompresj±, szyfrowaniem danych w tunelach.
+Wspierane typy tuneli to: PPP, IP, Ethernet i wiêkszo¶æ pozosta³ych
+protoko³ów szeregowych.
+
+
 %prep
 
 %setup -n %{name}
+%{__aclocal}
+#{__autoheader}			# does not work in all cases
+%{__autoconf}
 %configure			   \
             --prefix=%{_exec_prefix} 	   \
 	    --sysconfdir=/etc 	   \
@@ -76,19 +88,21 @@ This package is built with%{!?USE_SOCKS:out} SOCKS-support.
 
 %build
 %if %{IsSuSE}
-make LOCK_DIR=%{lock_dir} STAT_DIR=/var/log/vtunnel
+%{__make} LOCK_DIR=%{lock_dir} STAT_DIR=/var/log/vtunnel
 %else
-make
+%{__make}
 %endif
 
 %install
 [ $RPM_BUILD_ROOT != / ] && rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT%{rc_dir}
+
  if [ x%{IsSuSE} = x1 ]; then
 install scripts/vtund.rc.suse $RPM_BUILD_ROOT%{rc_dir}/vtund
  else 
 install scripts/vtund.rc.red_hat $RPM_BUILD_ROOT%{rc_dir}/vtund
  fi
+
 make install SBIN_DIR=$RPM_BUILD_ROOT%{_sbindir} \
         MAN_DIR=$RPM_BUILD_ROOT%{_mandir} \
         ETC_DIR=$RPM_BUILD_ROOT/etc \

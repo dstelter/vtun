@@ -1,10 +1,13 @@
 
 Future:
 	SigINT should be heeded (Michael Tokarov)
-
+	support for connecting ssl to non-ssl vtuns (sslauth option) <arturcz@hell.pl>
+	Use /dev/random in non-ssl gen_chal  (if possible) <arturcz@hell.pl>
+	
 ver 2.5.3:
 	$DESTDIR in makefile for packaging glee (PLD)
 	Tighter code in generic/pty_dev.c where available (PLD)
+	Various spec file improvements from (PLD)
 	
 ver 2.5.2:
 	Configure fixes, to ensure vtun will build under Mac OS/X (Kurt Werle)
