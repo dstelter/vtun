@@ -17,13 +17,14 @@
  */
 
 /*
- * $Id: lib.h,v 1.1.1.2 2000/03/28 17:18:47 maxk Exp $
- */ 
+ * lib.h,v 1.3 2001/09/20 06:26:41 talby Exp
+ */
 #ifndef _VTUN_LIB_H
 #define _VTUN_LIB_H
 
 #include "config.h"
 #include <sys/types.h>
+#include <signal.h>
 #include <errno.h>
 
 #ifdef HAVE_LIBUTIL_H
@@ -31,58 +32,75 @@
 #endif
 
 #ifndef HAVE_SETPROC_TITLE
-  void init_title(int argc,char *argv[],char *env[], char *name);
-  void set_title(const char *ftm, ...);
+void init_title(int argc, char *argv[], char *env[], char *name);
+void set_title(const char *ftm, ...);
 #else
-  #define init_title( a... ) 
-  #define set_title setproctitle
-#endif /* HAVE_SETPROC_TITLE */
+#define init_title( a... )
+#define set_title setproctitle
+#endif				/* HAVE_SETPROC_TITLE */
 
 #ifndef min
-  #define min(a,b)    ( (a)<(b) ? (a):(b) )
+#define min(a,b)    ( (a)<(b) ? (a):(b) )
 #endif
 
 int readn_t(int fd, void *buf, size_t count, time_t timeout);
 int print_p(int f, const char *ftm, ...);
 
-int  run_cmd(void *d, void *opt);
+int run_cmd(void *d, void *opt);
 void free_sopt(struct vtun_sopt *opt);
 
+/* IO cancelation */
+extern volatile sig_atomic_t __io_canceled;
+
+static inline void io_init(void)
+{
+	__io_canceled = 0;
+}
+
+static inline void io_cancel(void)
+{
+	__io_canceled = 1;
+}
+
 /* Read exactly len bytes (Signal safe)*/
-extern inline int read_n(int fd, void *buf, int len)
+static inline int read_n(int fd, char *buf, int len)
 {
-	register int t=0, w;
+	register int t = 0, w;
 
-	do {
-	  if( (w = read(fd, buf, len)) < 0 ){
-	     if( errno == EINTR && errno == EAGAIN )
- 	        continue;
-	     return -1;
-	  }
-	  if( !w )
-	     return 0;
-	  len -= w; buf += w; t += w;
-	} while(len > 0);
-
-	return t;
-}   
-
-/* Write exactly len bytes (Signal safe)*/
-extern inline int write_n(int fd, void *buf, int len)
-{
-	register int t=0, w;
-
-	do {
- 	  if( (w = write(fd, buf, len)) < 0 ){
-	     if( errno == EINTR && errno == EAGAIN )
-  	         continue;
-	     return -1;
-	  }
-	  if( !w )
-	     return 0;
-	  len -= w; buf += w; t += w;
-	} while(len > 0);
+	while (!__io_canceled && len > 0) {
+		if ((w = read(fd, buf, len)) < 0) {
+			if (errno == EINTR || errno == EAGAIN)
+				continue;
+			return -1;
+		}
+		if (!w)
+			return 0;
+		len -= w;
+		buf += w;
+		t += w;
+	}
 
 	return t;
 }
-#endif /* _VTUN_LIB_H */
+
+/* Write exactly len bytes (Signal safe)*/
+static inline int write_n(int fd, char *buf, int len)
+{
+	register int t = 0, w;
+
+	while (!__io_canceled && len > 0) {
+		if ((w = write(fd, buf, len)) < 0) {
+			if (errno == EINTR || errno == EAGAIN)
+				continue;
+			return -1;
+		}
+		if (!w)
+			return 0;
+		len -= w;
+		buf += w;
+		t += w;
+	}
+
+	return t;
+}
+#endif				/* _VTUN_LIB_H */

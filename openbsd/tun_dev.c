@@ -17,7 +17,7 @@
  */
 
 /*
- * tun_dev.c,v 1.3 2001/09/20 06:26:41 talby Exp
+ * tun_dev.c,v 1.4 2001/09/20 06:26:41 talby Exp
  */
 
 #include "config.h"
@@ -29,6 +29,12 @@
 #include <string.h>
 #include <syslog.h>
 
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if_tun.h>
+
 #include "vtun.h"
 #include "lib.h"
 
@@ -39,22 +45,22 @@
 int tun_open(char *dev)
 {
 	char tunname[14];
-	int i, fd;
+	int i, fd = -1;
 
 	if (*dev) {
 		sprintf(tunname, "/dev/%s", dev);
-		return open(tunname, O_RDWR);
-	}
-
-	for (i = 0; i < 255; i++) {
-		sprintf(tunname, "/dev/tun%d", i);
-		/* Open device */
-		if ((fd = open(tunname, O_RDWR)) > 0) {
-			sprintf(dev, "tun%d", i);
-			return fd;
+		fd = open(tunname, O_RDWR);
+	} else {
+		for (i = 0; i < 255; i++) {
+			sprintf(tunname, "/dev/tun%d", i);
+			/* Open device */
+			if ((fd = open(tunname, O_RDWR)) > 0) {
+				sprintf(dev, "tun%d", i);
+				break;
+			}
 		}
 	}
-	return -1;
+	return fd;
 }
 
 int tun_close(int fd, char *dev)
@@ -65,10 +71,30 @@ int tun_close(int fd, char *dev)
 /* Read/write frames from TUN device */
 int tun_write(int fd, char *buf, int len)
 {
-	return write(fd, buf, len);
+	u_int32_t type = htonl(AF_INET);
+	struct iovec iv[2];
+
+	iv[0].iov_base = &type;
+	iv[0].iov_len = sizeof(type);
+	iv[1].iov_base = buf;
+	iv[1].iov_len = len;
+
+	return writev(fd, iv, 2);
 }
 
 int tun_read(int fd, char *buf, int len)
 {
-	return read(fd, buf, len);
+	struct iovec iv[2];
+	u_int32_t type;
+	register int rlen;
+
+	iv[0].iov_base = &type;
+	iv[0].iov_len = sizeof(type);
+	iv[1].iov_base = buf;
+	iv[1].iov_len = len;
+
+	if ((rlen = readv(fd, iv, 2)) > 0)
+		return rlen - sizeof(type);
+	else
+		return rlen;
 }

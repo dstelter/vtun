@@ -17,7 +17,7 @@
  */
 
 /*
- * pipe_dev.c,v 1.2 2001/09/20 06:26:41 talby Exp
+ * tun_dev.c,v 1.3 2001/09/20 06:26:41 talby Exp
  */
 
 #include "config.h"
@@ -28,27 +28,56 @@
 #include <stdio.h>
 #include <string.h>
 #include <syslog.h>
-#include <sys/socket.h>
+
+#include <sys/ioctl.h>
+#include <net/if_tun.h>
 
 #include "vtun.h"
 #include "lib.h"
 
 /* 
- * Create pipe. Return open fd. 
+ * Allocate TUN device, returns opened fd. 
+ * Stores dev name in the first arg(must be large enough).
  */
-int pipe_open(int *fd)
+int tun_open(char *dev)
 {
-	return socketpair(AF_UNIX, SOCK_STREAM, 0, fd);
+	char tunname[14];
+	int i, fd = -1;
+
+	if (*dev) {
+		sprintf(tunname, "/dev/%s", dev);
+		fd = open(tunname, O_RDWR);
+	} else {
+		for (i = 0; i < 255; i++) {
+			sprintf(tunname, "/dev/tun%d", i);
+			/* Open device */
+			if ((fd = open(tunname, O_RDWR)) > 0) {
+				sprintf(dev, "tun%d", i);
+				break;
+			}
+		}
+	}
+	if (fd > -1) {
+		i = 0;
+		/* Disable extended modes */
+		ioctl(fd, TUNSLMODE, &i);
+		ioctl(fd, TUNSIFHEAD, &i);
+	}
+	return fd;
 }
 
-/* Write frames to pipe */
-int pipe_write(int fd, char *buf, int len)
+int tun_close(int fd, char *dev)
 {
-	return write_n(fd, buf, len);
+	return close(fd);
 }
 
-/* Read frames from pipe */
-int pipe_read(int fd, char *buf, int len)
+/* Read/write frames from/to TUN device */
+int tun_write(int fd, char *buf, int len)
+{
+	return write(fd, buf, len);
+}
+
+int tun_read(int fd, char *buf, int len)
 {
 	return read(fd, buf, len);
 }

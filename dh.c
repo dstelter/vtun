@@ -26,7 +26,7 @@
 #include <string.h>
 #include <syslog.h>
 #define _PATH_DH_PRIMES "/etc/ssh/primes"
- 
+
 struct dhgroup {
 	int size;
 	BIGNUM *g;
@@ -34,57 +34,54 @@ struct dhgroup {
 };
 #define WHITESPACE " \t\r\n"
 
-static DH *
-dh_new_group_asc(const char *gen, const char *modulus)
+static DH *dh_new_group_asc(const char *gen, const char *modulus)
 {
 	DH *dh;
 	int ret;
 
 	dh = DH_new();
-	if (dh != NULL){
-	    if ((ret = BN_hex2bn(&dh->p, modulus)) < 0){
-		DH_free(dh);
-		dh = NULL;
-	    }
-	    if ((ret = BN_hex2bn(&dh->g, gen)) < 0){
-		BN_free(dh->p);
-		DH_free(dh);
-		dh=NULL;
-	    }
+	if (dh != NULL) {
+		if ((ret = BN_hex2bn(&dh->p, modulus)) < 0) {
+			DH_free(dh);
+			dh = NULL;
+		}
+		if ((ret = BN_hex2bn(&dh->g, gen)) < 0) {
+			BN_free(dh->p);
+			DH_free(dh);
+			dh = NULL;
+		}
 	}
 	return (dh);
 }
 
 
-static DH *
-dh_new_group(BIGNUM *gen, BIGNUM *modulus)
+static DH *dh_new_group(BIGNUM * gen, BIGNUM * modulus)
 {
 	DH *dh;
 
 	dh = DH_new();
-	if (dh != NULL){
-	    dh->p = modulus;
-	    dh->g = gen;
+	if (dh != NULL) {
+		dh->p = modulus;
+		dh->g = gen;
 	}
 	return (dh);
 }
 
-static DH *
-dh_new_group1(void)
+static DH *dh_new_group1(void)
 {
 	static char *gen = "2", *group1 =
-	    "FFFFFFFF" "FFFFFFFF" "C90FDAA2" "2168C234" "C4C6628B" "80DC1CD1"
-	    "29024E08" "8A67CC74" "020BBEA6" "3B139B22" "514A0879" "8E3404DD"
-	    "EF9519B3" "CD3A431B" "302B0A6D" "F25F1437" "4FE1356D" "6D51C245"
-	    "E485B576" "625E7EC6" "F44C42E9" "A637ED6B" "0BFF5CB6" "F406B7ED"
-	    "EE386BFB" "5A899FA5" "AE9F2411" "7C4B1FE6" "49286651" "ECE65381"
+	    "FFFFFFFF" "FFFFFFFF" "C90FDAA2" "2168C234" "C4C6628B"
+	    "80DC1CD1" "29024E08" "8A67CC74" "020BBEA6" "3B139B22"
+	    "514A0879" "8E3404DD" "EF9519B3" "CD3A431B" "302B0A6D"
+	    "F25F1437" "4FE1356D" "6D51C245" "E485B576" "625E7EC6"
+	    "F44C42E9" "A637ED6B" "0BFF5CB6" "F406B7ED" "EE386BFB"
+	    "5A899FA5" "AE9F2411" "7C4B1FE6" "49286651" "ECE65381"
 	    "FFFFFFFF" "FFFFFFFF";
 
 	return (dh_new_group_asc(gen, group1));
 }
 
-static char *
-strdelim(char **s)
+static char *strdelim(char **s)
 {
 	char *old;
 	int wspace = 0;
@@ -111,8 +108,7 @@ strdelim(char **s)
 }
 
 
-static int
-parse_prime(int linenum, char *line, struct dhgroup *dhg)
+static int parse_prime(int linenum, char *line, struct dhgroup *dhg)
 {
 	char *cp, *arg;
 	char *strsize, *gen, *prime;
@@ -128,23 +124,23 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 	/* time */
 	if (cp == NULL || *arg == '\0')
 		goto fail;
-	arg = strsep(&cp, " "); /* type */
+	arg = strsep(&cp, " ");	/* type */
 	if (cp == NULL || *arg == '\0')
 		goto fail;
-	arg = strsep(&cp, " "); /* tests */
+	arg = strsep(&cp, " ");	/* tests */
 	if (cp == NULL || *arg == '\0')
 		goto fail;
-	arg = strsep(&cp, " "); /* tries */
+	arg = strsep(&cp, " ");	/* tries */
 	if (cp == NULL || *arg == '\0')
 		goto fail;
-	strsize = strsep(&cp, " "); /* size */
-	if (cp == NULL || *strsize == '\0' ||
-	    (dhg->size = atoi(strsize)) == 0)
+	strsize = strsep(&cp, " ");	/* size */
+	if (cp == NULL || *strsize == '\0'
+	    || (dhg->size = atoi(strsize)) == 0)
 		goto fail;
-	gen = strsep(&cp, " "); /* gen */
+	gen = strsep(&cp, " ");	/* gen */
 	if (cp == NULL || *gen == '\0')
 		goto fail;
-	prime = strsep(&cp, " "); /* prime */
+	prime = strsep(&cp, " ");	/* prime */
 	if (cp != NULL || *prime == '\0')
 		goto fail;
 
@@ -161,7 +157,7 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 	}
 
 	return (1);
- fail:
+      fail:
 	error("Bad prime description in line %d", linenum);
 	return (0);
 }
@@ -169,8 +165,7 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 
 
 
-DH *
-choose_dh(int minbits)
+DH *choose_dh(int minbits)
 {
 	FILE *f;
 	char line[1024];
@@ -180,7 +175,9 @@ choose_dh(int minbits)
 
 	f = fopen(_PATH_DH_PRIMES, "r");
 	if (!f) {
-		syslog(LOG_INFO,"WARNING: %s does not exist, using old prime", _PATH_DH_PRIMES);
+		syslog(LOG_INFO,
+		       "WARNING: %s does not exist, using old prime",
+		       _PATH_DH_PRIMES);
 		return (dh_new_group1());
 	}
 
@@ -201,17 +198,20 @@ choose_dh(int minbits)
 		if (dhg.size == best)
 			bestcount++;
 	}
-	fclose (f);
+	fclose(f);
 
 	if (bestcount == 0) {
-		syslog(LOG_INFO,"WARNING: no primes in %s, using old prime", _PATH_DH_PRIMES);
+		syslog(LOG_INFO,
+		       "WARNING: no primes in %s, using old prime",
+		       _PATH_DH_PRIMES);
 		return (dh_new_group1());
 	}
 
 	f = fopen(_PATH_DH_PRIMES, "r");
 	if (!f) {
-	    syslog(LOG_ERR,"WARNING: %s disappeared, giving up", _PATH_DH_PRIMES);
-	    exit(1);
+		syslog(LOG_ERR, "WARNING: %s disappeared, giving up",
+		       _PATH_DH_PRIMES);
+		exit(1);
 	}
 
 	linenum = 0;

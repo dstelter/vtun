@@ -17,8 +17,8 @@
  */
 
 /*
- * $Id: tcp_proto.c,v 1.1.1.1 2000/03/28 17:19:55 maxk Exp $
- */ 
+ * tcp_proto.c,v 1.5 2001/09/20 06:26:41 talby Exp
+ */
 
 #include "config.h"
 
@@ -56,67 +56,44 @@
 
 int tcp_write(int fd, char *buf, int len)
 {
-     unsigned short nlen, cnt; 
-     struct iovec iv[2];
+	register char *ptr;
 
-     nlen = htons(len); 
-     len  = len & VTUN_FSIZE_MASK;
+	ptr = buf - sizeof(short);
 
-     iv[0].iov_len  = sizeof(short); 
-     iv[0].iov_base = (char *) &nlen; 
-     if( buf ) {
-        iv[1].iov_len  = len; 
-        iv[1].iov_base = buf;
-	cnt = 2;
-     } else {
-        /* Write flags only */
-	cnt = 1;
-     }
+	*((unsigned short *) ptr) = htons(len);
+	len = (len & VTUN_FSIZE_MASK) + sizeof(short);
 
-     while(1) {
-        register int err;
-	err = writev(fd, iv, cnt); 
-	if( err < 0 && ( errno == EAGAIN || errno == EINTR ) )
-	   continue;
-	if( err > 0 && err < (len + sizeof(short)) ) {
-	   /* We wrote only part of the frame, lets write the rest
-	    * FIXME should check if wrote less than sizeof(short) */
-	   err -= sizeof(short);
-	   return write_n(fd, buf + err, len - err);
-	}
-
-	return err;
-     }
+	return write_n(fd, ptr, len);
 }
 
 int tcp_read(int fd, char *buf)
 {
-     unsigned short len, flen;
-     register int err;     
+	unsigned short len, flen;
+	register int rlen;
 
-     /* Read frame size */
-     if( (err = read_n(fd, &len, sizeof(short)) ) < 0)
-	return err;
+	/* Read frame size */
+	if ((rlen = read_n(fd, (char *) &len, sizeof(short))) <= 0)
+		return rlen;
 
-     len = ntohs(len);
-     flen = len & VTUN_FSIZE_MASK;
+	len = ntohs(len);
+	flen = len & VTUN_FSIZE_MASK;
 
-     if( flen > VTUN_FRAME_SIZE + VTUN_FRAME_OVERHEAD ) {
-     	/* Oversized frame, drop it. */ 
-        while(flen) {
-	   len = min(flen, VTUN_FRAME_SIZE);
-           if( (len = read_n(fd, buf, len)) <= 0 )
-	      break;
-           flen -= len;
-        }                                                               
-	return VTUN_BAD_FRAME;
-     }	
+	if (flen > VTUN_FRAME_SIZE + VTUN_FRAME_OVERHEAD) {
+		/* Oversized frame, drop it. */
+		while (flen) {
+			len = min(flen, VTUN_FRAME_SIZE);
+			if ((rlen = read_n(fd, buf, len)) <= 0)
+				break;
+			flen -= rlen;
+		}
+		return VTUN_BAD_FRAME;
+	}
 
-     if( len & ~VTUN_FSIZE_MASK ) {
-	/* Return flags */
-	return len;
-     }
+	if (len & ~VTUN_FSIZE_MASK) {
+		/* Return flags */
+		return len;
+	}
 
-     /* Read frame */
-     return read_n(fd, buf, flen);
+	/* Read frame */
+	return read_n(fd, buf, flen);
 }

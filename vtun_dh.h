@@ -17,8 +17,8 @@
  */
 
 /*
- * $Id: vtun_dh.h,v 1.1.2.1 2002/01/14 21:51:24 noop Exp $
- */ 
+ * $Id: vtun_dh.h,v 1.1.2.2 2002/01/22 09:54:36 noop Exp $
+ */
 
 /*
    Encryption module uses software developed by the OpenSSL Project
@@ -27,5 +27,4 @@
  */
 #include <dh.h>
 
-DH *
-choose_dh(int minbits);
+DH *choose_dh(int minbits);

@@ -17,8 +17,8 @@
  */
 
 /*
- * $Id: client.c,v 1.1.1.2 2000/03/28 17:18:43 maxk Exp $
- */ 
+ * client.c,v 1.7 2002/01/05 01:23:39 noop Exp
+ */
 
 #include "config.h"
 #include "vtun_socks.h"
@@ -46,95 +46,115 @@
 #include "compat.h"
 #include "netlib.h"
 
-static int client_term;
+static volatile sig_atomic_t client_term;
 static void sig_term(int sig)
 {
-     syslog(LOG_INFO,"Terminated");
-     client_term = -1;
+	syslog(LOG_INFO, "Terminated");
+	client_term = VTUN_SIG_TERM;
 }
 
 void client(struct vtun_host *host)
 {
-     struct sockaddr_in my_addr,svr_addr;
-     struct sigaction sa;
-     int s,opt;	
+	struct sockaddr_in my_addr, svr_addr;
+	struct sigaction sa;
+	int s, opt, reconnect;
 
-     syslog(LOG_INFO,"VTun client ver %s started",VER);
+	syslog(LOG_INFO, "VTun client ver %s started", VTUN_VER);
 
-     memset(&sa,0,sizeof(sa));     
-     sa.sa_handler=SIG_IGN;
-     sa.sa_flags = SA_NOCLDWAIT;
-     sigaction(SIGHUP,&sa,NULL);
-     sigaction(SIGINT,&sa,NULL);
-     sigaction(SIGQUIT,&sa,NULL);
-     sigaction(SIGPIPE,&sa,NULL);
-     sigaction(SIGCHLD,&sa,NULL);
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = SIG_IGN;
+	sa.sa_flags = SA_NOCLDWAIT;
+	sigaction(SIGHUP, &sa, NULL);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+	sigaction(SIGPIPE, &sa, NULL);
+	sigaction(SIGCHLD, &sa, NULL);
 
-     sa.sa_handler=sig_term;
-     sigaction(SIGTERM,&sa,NULL);
- 
-     client_term = 0;
-     while( !client_term ){ 
-	set_title("%s init initializing", host->host);
+	sa.sa_handler = sig_term;
+	sigaction(SIGTERM, &sa, NULL);
 
-	/* Set server address */
-        if( server_addr(&svr_addr, host) )
-	   break;
+	client_term = 0;
+	reconnect = 0;
+	while ((!client_term) || (client_term == VTUN_SIG_HUP)) {
+		if (reconnect && (client_term != VTUN_SIG_HUP)) {
+			if (vtun.persist || host->persist) {
+				/* Persist mode. Sleep and reconnect. */
+				sleep(5);
+			} else {
+				/* Exit */
+				break;
+			}
+		} else {
+			reconnect = 1;
+		}
 
-	/* Set local address */
-	local_addr(&my_addr, host);
+		set_title("%s init initializing", host->host);
 
-	/* We have to create socket again every time
-	 * we want to connect, since STREAM sockets 
-	 * can be successfully connected only once.
-	 */
-        if( (s=socket(AF_INET,SOCK_STREAM,0))==-1 ){
-	   syslog(LOG_ERR,"Can not create socket");
-	   break;
-        }
+		/* Set server address */
+		if (server_addr(&svr_addr, host) < 0)
+			continue;
 
-	/* Required when client is forced to bind to specific port */
-        opt=1;
-        setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)); 
+		/* Set local address */
+		if (local_addr(&my_addr, host, 0) < 0)
+			continue;
 
-        if( bind(s,(struct sockaddr *)&my_addr,sizeof(my_addr)) ){
-	   syslog(LOG_ERR,"Can not bind to the socket");
-	   break;
-        }
+		/* We have to create socket again every time
+		 * we want to connect, since STREAM sockets 
+		 * can be successfully connected only once.
+		 */
+		if ((s = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+			syslog(LOG_ERR, "Can't create socket. %s(%d)",
+			       strerror(errno), errno);
+			continue;
+		}
 
-        /* 
-         * Clear speed and flags which will be supplied by server. 
-         */
-        host->spd_in = host->spd_out = 0;
-        host->flags &= VTUN_CLNT_MASK;
+		/* Required when client is forced to bind to specific port */
+		opt = 1;
+		setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-	set_title("connecting to %s", vtun.svr_name);
-        syslog(LOG_INFO,"Connecting to %s", vtun.svr_name);
+		if (bind(s, (struct sockaddr *) &my_addr, sizeof(my_addr))) {
+			syslog(LOG_ERR, "Can't bind socket. %s(%d)",
+			       strerror(errno), errno);
+			continue;
+		}
 
-        if( connect_t(s,(struct sockaddr *) &svr_addr, vtun.timeout) ){
-	   syslog(LOG_INFO,"Can't connect to %s",vtun.svr_name);
-        } else {
-	   if( auth_client(s, host) ){   
-	      syslog(LOG_INFO,"Session %s[%s] opened",host->host,vtun.svr_name);
+		/* 
+		 * Clear speed and flags which will be supplied by server. 
+		 */
+		host->spd_in = host->spd_out = 0;
+		host->flags &= VTUN_CLNT_MASK;
 
- 	      host->rmt_fd = s;
+		io_init();
 
-	      /* Start the tunnel */
-	      client_term = tunnel(host);
+		set_title("%s connecting to %s", host->host,
+			  vtun.svr_name);
+		syslog(LOG_INFO, "Connecting to %s", vtun.svr_name);
 
-	      syslog(LOG_INFO,"Session %s[%s] closed",host->host,vtun.svr_name);
-	   } else {
-	      syslog(LOG_INFO,"Connection denied by %s",vtun.svr_name);
-	   }
+		if (connect_t
+		    (s, (struct sockaddr *) &svr_addr, host->timeout)) {
+			syslog(LOG_INFO, "Connect to %s failed. %s(%d)",
+			       vtun.svr_name, strerror(errno), errno);
+		} else {
+			if (auth_client(s, host)) {
+				syslog(LOG_INFO, "Session %s[%s] opened",
+				       host->host, vtun.svr_name);
+
+				host->rmt_fd = s;
+
+				/* Start the tunnel */
+				client_term = tunnel(host);
+
+				syslog(LOG_INFO, "Session %s[%s] closed",
+				       host->host, vtun.svr_name);
+			} else {
+				syslog(LOG_INFO, "Connection denied by %s",
+				       vtun.svr_name);
+			}
+		}
+		close(s);
+		free_sopt(&host->sopt);
 	}
-	close(s);
-	
-	/* If persist option is set, sleep and try to reconnect */
-	if( !client_term && vtun.persist > 0 ) 
-	   sleep(5);
-        else
-	   break;
-     }
-     syslog(LOG_INFO,"Exit");
-     return;
+
+	syslog(LOG_INFO, "Exit");
+	return;
 }
