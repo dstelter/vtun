@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lib.c,v 1.1.1.2 2000/03/28 17:18:26 maxk Exp $
+ * $Id: lib.c,v 1.1.1.2.2.1 2000/09/21 00:59:33 maxk Exp $
  */ 
 
 #include "config.h"
@@ -324,10 +324,18 @@ int run_cmd(void *d, void *opt)
 
 void free_sopt( struct vtun_sopt *opt )
 {
-     if( opt->dev )
+     if( opt->dev ){
 	free(opt->dev);
-     if( opt->laddr )
+        opt->dev = NULL;
+     }
+
+     if( opt->laddr ){
 	free(opt->laddr);
-     if( opt->raddr )
+        opt->laddr = NULL;
+     }
+
+     if( opt->raddr ){
 	free(opt->raddr);
+        opt->raddr = NULL;
+     }
 };
