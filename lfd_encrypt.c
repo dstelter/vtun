@@ -17,10 +17,6 @@
  */
 
 /*
- * lfd_encrypt.c,v 1.2.2.6 2002/04/25 09:19:50 bergolth Exp
- */ 
-
-/*
    Encryption module uses software developed by the OpenSSL Project
    for use in the OpenSSL Toolkit. (http://www.openssl.org/)       
    Copyright (c) 1998-2000 The OpenSSL Project.  All rights reserved.
@@ -29,8 +25,14 @@
 /*
  * This lfd_encrypt module uses MD5 to create 128 bits encryption
  * keys and BlowFish for actual data encryption.
- * It is based on code written by Chris Todd<christ@insynq.com> with 
- * several improvements and modifications by me.  
+ * It is based on code written by Chris Todd<christ@insynq.com> with
+ * several improvements and modifications by me.
+ */
+
+/*
+ * The current lfd_encrypt module is based on code attributed above and 
+ * uses new code written by Dale Fountain <dpf-vtun@fountainbay.com> to 
+ * allow multiple ciphers, modes, and key sizes. Feb 2004.
  */
 
 #include "config.h"
@@ -60,8 +62,9 @@
 #endif  /* __APPLE_CC__ */
 
 /*
-#define ENC_BUF_SIZE VTUN_FRAME_SIZE + 16 
-*/
+ * #define LFD_ENCRYPT_DEBUG
+ */
+
 #define ENC_BUF_SIZE VTUN_FRAME_SIZE + 128 
 #define ENC_KEY_SIZE 16
 
@@ -69,15 +72,29 @@ BF_KEY key;
 char * enc_buf;
 char * dec_buf;
 
-#define CIPHER_INIT	0
-#define CIPHER_CODE	1	
+#define CIPHER_INIT		0
+#define CIPHER_CODE		1	
+#define CIPHER_SEQUENCE 	2
+#define CIPHER_REQ_INIT 	3
 
 struct vtun_host *phost;
+
+extern int send_a_packet;
+
+/* out of sync packet threshold before forcing a re-init */ 
+#define MAX_GIBBERISH	10
+#define MIN_GIBBERISH   1
+int gibberish;
 
 int cipher_enc_state;
 int cipher_dec_state;
 int cipher;
 int blocksize;
+int keysize;
+int enc_init_first_time;
+int dec_init_first_time;
+unsigned long sequence_num;
+char * pkey;
 char * iv_buf;
 
 EVP_CIPHER_CTX ctx_enc;	/* encrypt */
@@ -86,8 +103,59 @@ EVP_CIPHER_CTX ctx_dec;	/* decrypt */
 EVP_CIPHER_CTX ctx_enc_ecb;	/* sideband ecb encrypt */
 EVP_CIPHER_CTX ctx_dec_ecb;	/* sideband ecb decrypt */
 
+int prep_key(char **key, int size, struct vtun_host *host)
+{
+   int tmplen, halflen;
+   char *hashkey;
+
+   if ( !(hashkey = malloc(size)) )
+   {
+      vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
+      return -1;
+   }
+   memset(hashkey,0,size);
+
+   if (size == 32)
+   {
+      tmplen = strlen(host->passwd);
+      if (tmplen != 0) halflen = tmplen>>1;
+      else halflen = 0;
+      MD5(host->passwd, halflen, hashkey);
+      MD5((host->passwd)+halflen, tmplen-halflen, hashkey+16);
+   }
+   else if (size == 16)
+   {
+      MD5(host->passwd,strlen(host->passwd), hashkey);
+   }
+   else
+   {
+      /* don't know what to do */
+      free(hashkey);
+      *key = NULL;
+      return -1;
+   }
+   *key = hashkey;
+   return 0;
+}
+
+void free_key (char *key)
+{
+   free(key);
+}
+
 int alloc_encrypt(struct vtun_host *host)
 {
+   int sb_init = 0;
+   int var_key = 0;
+   const EVP_CIPHER *cipher_type;
+   char tmpstr[64];
+   char cipher_name[32];
+   EVP_CIPHER_CTX *pctx_enc;
+   EVP_CIPHER_CTX *pctx_dec;
+
+   enc_init_first_time = 1;   
+   dec_init_first_time = 1;   
+
    if( !(enc_buf = lfd_alloc(ENC_BUF_SIZE)) ){
       vtun_syslog(LOG_ERR,"Can't allocate buffer for encryptor");
       return -1;
@@ -97,9 +165,8 @@ int alloc_encrypt(struct vtun_host *host)
       return -1;
    }
 
-   EVP_CIPHER_CTX_init(&ctx_enc);
-   EVP_CIPHER_CTX_init(&ctx_dec);
-
+   RAND_bytes((char *)&sequence_num, 4);
+   gibberish = 0;
    phost = host;
    cipher = host->cipher;
    switch(cipher)
@@ -107,213 +174,126 @@ int alloc_encrypt(struct vtun_host *host)
       case VTUN_ENC_AES256OFB:
       case VTUN_ENC_AES256CFB:
       case VTUN_ENC_AES256CBC:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
          blocksize = 16;
          keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);
-         tmplen = strlen(host->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;
-         strncpy(pkey, MD5(host->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((host->passwd)+halflen, tmplen-halflen,
-            NULL), 16);
-         EVP_CIPHER_CTX_init(&ctx_enc_ecb);
-         EVP_CIPHER_CTX_init(&ctx_dec_ecb);
-         EVP_EncryptInit_ex(&ctx_enc_ecb, EVP_aes_256_ecb(), NULL,
-            pkey, NULL);
-         EVP_DecryptInit_ex(&ctx_dec_ecb, EVP_aes_256_ecb(), NULL,
-            pkey, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc_ecb, 0);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec_ecb, 0);
-         cipher_enc_state=CIPHER_INIT;
-         cipher_dec_state=CIPHER_INIT;
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-      }
+         sb_init = 1;
+         cipher_type = EVP_aes_256_ecb();
+         pctx_enc = &ctx_enc_ecb;
+         pctx_dec = &ctx_dec_ecb;
       break;
       
       case VTUN_ENC_AES256ECB:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
          blocksize = 16;
          keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);
-         tmplen = strlen(host->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;
-         strncpy(pkey, MD5(host->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((host->passwd)+halflen, tmplen-halflen,
-            NULL), 16);
-         EVP_EncryptInit_ex(&ctx_enc, EVP_aes_256_ecb(), NULL,
-            pkey, NULL);
-         EVP_DecryptInit_ex(&ctx_dec, EVP_aes_256_ecb(), NULL,     
-            pkey, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);        
-         cipher_enc_state=CIPHER_CODE;
-         cipher_dec_state=CIPHER_CODE;
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-         vtun_syslog(LOG_INFO, "AES-256-ECB encryption initialized");
-      }
+         pctx_enc = &ctx_enc;
+         pctx_dec = &ctx_dec;
+         cipher_type = EVP_aes_256_ecb();
+         strcpy(cipher_name,"AES-256-ECB");
       break;      
       case VTUN_ENC_AES128OFB:
       case VTUN_ENC_AES128CFB:
       case VTUN_ENC_AES128CBC:
          blocksize = 16;
-         EVP_CIPHER_CTX_init(&ctx_enc_ecb);
-         EVP_CIPHER_CTX_init(&ctx_dec_ecb);
-         EVP_EncryptInit_ex(&ctx_enc_ecb, EVP_aes_128_ecb(), NULL,
-            MD5(host->passwd,strlen(host->passwd), NULL),NULL);
-         EVP_DecryptInit_ex(&ctx_dec_ecb, EVP_aes_128_ecb(), NULL,
-            MD5(host->passwd,strlen(host->passwd), NULL), NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc_ecb, 0);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec_ecb, 0);
-         cipher_enc_state=CIPHER_INIT;
-         cipher_dec_state=CIPHER_INIT;
+         keysize = 16;
+         sb_init=1;
+         cipher_type = EVP_aes_128_ecb();
+         pctx_enc = &ctx_enc_ecb;
+         pctx_dec = &ctx_dec_ecb;
       break;
       case VTUN_ENC_AES128ECB:
          blocksize = 16;
-         EVP_EncryptInit_ex(&ctx_enc, EVP_aes_128_ecb(), NULL,
-            MD5(host->passwd,strlen(host->passwd), NULL),NULL);
-         EVP_DecryptInit_ex(&ctx_dec, EVP_aes_128_ecb(), NULL,
-            MD5(host->passwd,strlen(host->passwd), NULL), NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);
-         cipher_enc_state=CIPHER_CODE;
-         cipher_dec_state=CIPHER_CODE;
-         vtun_syslog(LOG_INFO, "AES-128-ECB encryption initialized");
+         keysize = 16;
+         pctx_enc = &ctx_enc;
+         pctx_dec = &ctx_dec;
+         cipher_type = EVP_aes_128_ecb();
+         strcpy(cipher_name,"AES-128-ECB");
       break;
 
       case VTUN_ENC_BF256OFB:
       case VTUN_ENC_BF256CFB:
       case VTUN_ENC_BF256CBC:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
          blocksize = 8;
          keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);
-         tmplen = strlen(host->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;
-         strncpy(pkey, MD5(host->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((host->passwd)+halflen, tmplen-halflen,
-            NULL), 16);
-
-         EVP_EncryptInit_ex(&ctx_enc_ecb, EVP_bf_ecb(), NULL, NULL, NULL);
-         EVP_DecryptInit_ex(&ctx_dec_ecb, EVP_bf_ecb(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc_ecb, 0);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec_ecb, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_enc_ecb, keysize);
-         EVP_CIPHER_CTX_set_key_length(&ctx_dec_ecb, keysize);
-         EVP_EncryptInit_ex(&ctx_enc_ecb, NULL, NULL, pkey, NULL);
-         EVP_DecryptInit_ex(&ctx_dec_ecb, NULL, NULL, pkey, NULL);
-         cipher_enc_state=CIPHER_INIT;
-         cipher_dec_state=CIPHER_INIT;
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-      }
+         var_key = 1;
+         sb_init = 1;
+         cipher_type = EVP_bf_ecb();
+         pctx_enc = &ctx_enc_ecb;
+         pctx_dec = &ctx_dec_ecb;
       break;
 
       case VTUN_ENC_BF256ECB:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
          blocksize = 8;
          keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);
-         tmplen = strlen(host->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;
-         strncpy(pkey, MD5(host->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((host->passwd)+halflen, tmplen-halflen,
-            NULL), 16);
-
-         EVP_EncryptInit_ex(&ctx_enc, EVP_bf_ecb(), NULL, NULL, NULL);
-         EVP_DecryptInit_ex(&ctx_dec, EVP_bf_ecb(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_enc, keysize);
-         EVP_CIPHER_CTX_set_key_length(&ctx_dec, keysize);
-         EVP_EncryptInit_ex(&ctx_enc, NULL, NULL, pkey, NULL);
-         EVP_DecryptInit_ex(&ctx_dec, NULL, NULL, pkey, NULL);
-         cipher_enc_state=CIPHER_CODE;
-         cipher_dec_state=CIPHER_CODE;
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-         vtun_syslog(LOG_INFO, "Blowfish-256-ECB encryption initialized");
-      }
+         var_key = 1;
+         pctx_enc = &ctx_enc;
+         pctx_dec = &ctx_dec;
+         cipher_type = EVP_bf_ecb();
+         strcpy(cipher_name,"Blowfish-256-ECB");
       break;
 
       case VTUN_ENC_BF128OFB:
       case VTUN_ENC_BF128CFB:
       case VTUN_ENC_BF128CBC:
          blocksize = 8;
-         EVP_CIPHER_CTX_init(&ctx_enc_ecb);
-         EVP_CIPHER_CTX_init(&ctx_dec_ecb);
-         EVP_EncryptInit_ex(&ctx_enc_ecb, EVP_bf_ecb(), NULL, NULL, NULL);
-         EVP_DecryptInit_ex(&ctx_dec_ecb, EVP_bf_ecb(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc_ecb, 0);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec_ecb, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_enc_ecb, 16);
-         EVP_CIPHER_CTX_set_key_length(&ctx_dec_ecb, 16);
-         EVP_EncryptInit_ex(&ctx_enc_ecb, NULL, NULL,
-            MD5(host->passwd,strlen(host->passwd), NULL), NULL);
-         EVP_DecryptInit_ex(&ctx_dec_ecb, NULL, NULL,
-            MD5(host->passwd,strlen(host->passwd), NULL), NULL);
-         cipher_enc_state=CIPHER_INIT;
-         cipher_dec_state=CIPHER_INIT;
+         keysize = 16;
+         var_key = 1;
+         sb_init = 1;
+         cipher_type = EVP_bf_ecb();
+         pctx_enc = &ctx_enc_ecb;
+         pctx_dec = &ctx_dec_ecb;
       break;
       case VTUN_ENC_BF128ECB: /* blowfish 128 ecb is the default */
       default:
          blocksize = 8;
-         EVP_EncryptInit_ex(&ctx_enc, EVP_bf_ecb(), NULL, NULL, NULL);
-         EVP_DecryptInit_ex(&ctx_dec, EVP_bf_ecb(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_enc, 16);
-         EVP_CIPHER_CTX_set_key_length(&ctx_dec, 16);
-         EVP_EncryptInit_ex(&ctx_enc, NULL, NULL, 
-            MD5(host->passwd,strlen(host->passwd), NULL), NULL);
-         EVP_DecryptInit_ex(&ctx_dec, NULL, NULL,
-            MD5(host->passwd,strlen(host->passwd), NULL), NULL);
-         cipher_enc_state=CIPHER_CODE;
-         cipher_dec_state=CIPHER_CODE;
-         vtun_syslog(LOG_INFO, "Blowfish-128-ECB encryption initialized");
+         keysize = 16;
+         var_key = 1;
+         pctx_enc = &ctx_enc;
+         pctx_dec = &ctx_dec;
+         cipher_type = EVP_bf_ecb();
+         strcpy(cipher_name,"Blowfish-128-ECB");
       break;
    } /* switch(host->cipher) */
 
-
+   if (prep_key(&pkey, keysize, host) != 0) return -1;
+   EVP_CIPHER_CTX_init(pctx_enc);
+   EVP_CIPHER_CTX_init(pctx_dec);
+   EVP_EncryptInit_ex(pctx_enc, cipher_type, NULL, NULL, NULL);
+   EVP_DecryptInit_ex(pctx_dec, cipher_type, NULL, NULL, NULL);
+   if (var_key)
+   {
+      EVP_CIPHER_CTX_set_key_length(pctx_enc, keysize);
+      EVP_CIPHER_CTX_set_key_length(pctx_dec, keysize);
+   }
+   EVP_EncryptInit_ex(pctx_enc, NULL, NULL, pkey, NULL);
+   EVP_DecryptInit_ex(pctx_dec, NULL, NULL, pkey, NULL);
+   EVP_CIPHER_CTX_set_padding(pctx_enc, 0);
+   EVP_CIPHER_CTX_set_padding(pctx_dec, 0);
+   if (sb_init)
+   {
+      cipher_enc_state=CIPHER_INIT;
+      cipher_dec_state=CIPHER_INIT;
+   }
+   else
+   {
+      cipher_enc_state=CIPHER_CODE;
+      cipher_dec_state=CIPHER_CODE;
+      sprintf(tmpstr,"%s encryption initialized", cipher_name);
+      vtun_syslog(LOG_INFO, tmpstr);
+   }
    return 0;
 }
 
 int free_encrypt()
 {
+   free_key(pkey); pkey = NULL;
+
    lfd_free(enc_buf); enc_buf = NULL;
    lfd_free(dec_buf); dec_buf = NULL;
 
    EVP_CIPHER_CTX_cleanup(&ctx_enc);
    EVP_CIPHER_CTX_cleanup(&ctx_dec);
+   EVP_CIPHER_CTX_cleanup(&ctx_enc_ecb);
+   EVP_CIPHER_CTX_cleanup(&ctx_dec_ecb);
 
    return 0;
 }
@@ -322,7 +302,7 @@ int encrypt_buf(int len, char *in, char **out)
 { 
    register int pad, p, msg_len;
    int outlen;
-   register char *in_ptr, *out_ptr = enc_buf;
+   char *in_ptr, *out_ptr = enc_buf;
 
    msg_len = send_msg(len, in, out);
    in = *out;
@@ -330,6 +310,8 @@ int encrypt_buf(int len, char *in, char **out)
    memcpy(out_ptr,in,msg_len);
    out_ptr += msg_len;
    
+   send_ib_mesg(&len, &in_ptr);
+   if (!len) return 0;
    /* ( len % blocksize ) */
    p = (len & (blocksize-1)); pad = blocksize - p;
    
@@ -339,13 +321,16 @@ int encrypt_buf(int len, char *in, char **out)
       RAND_bytes(in_ptr+len, blocksize-1);
    EVP_EncryptUpdate(&ctx_enc, out_ptr, &outlen, in_ptr, len+pad);
    *out = enc_buf;
+
+   sequence_num++;
+
    return outlen+msg_len;
 }
 
 int decrypt_buf(int len, char *in, char **out)
 {
    register int pad;
-   register char *in_ptr, *out_ptr = dec_buf;
+   char *tmp_ptr, *in_ptr, *out_ptr = dec_buf;
    int outlen;
 
    len = recv_msg(len, in, out);
@@ -353,419 +338,198 @@ int decrypt_buf(int len, char *in, char **out)
    in_ptr = in;
 
    outlen=len;
+   if (!len) return 0;
    EVP_DecryptUpdate(&ctx_dec, out_ptr, &outlen, in_ptr, len);
-   out_ptr += outlen-1;
-   pad = *out_ptr;
+   recv_ib_mesg(&outlen, &out_ptr);
+   if (!outlen) return 0;
+   tmp_ptr = out_ptr + outlen; tmp_ptr--;
+   pad = *tmp_ptr;
    if (pad < 1 || pad > blocksize) {
       vtun_syslog(LOG_INFO, "decrypt_buf: bad pad length");
       return 0;
    }
-   *out = dec_buf;
+   *out = out_ptr;
    return outlen - pad;
 }
 
 int cipher_enc_init(char * iv)
 {
+   int var_key = 0;
+   const EVP_CIPHER *cipher_type;
+   char tmpstr[64];
+   char cipher_name[32];
+
    switch(cipher)
    {
       case VTUN_ENC_AES256OFB:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
-         keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {        
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);
-         tmplen = strlen(phost->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;
-         strncpy(pkey, MD5(phost->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((phost->passwd)+halflen, tmplen-halflen,
-            NULL), 16);        
-         EVP_EncryptInit_ex(&ctx_enc, EVP_aes_256_ofb(), NULL,    
-            pkey, iv);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);    
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-         vtun_syslog(LOG_INFO, "AES-256-OFB encryption initialized");
-      }
+         cipher_type = EVP_aes_256_ofb();
+         strcpy(cipher_name, "AES-256-OFB");
       break;
 
       case VTUN_ENC_AES256CFB:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
-         keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {        
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);
-         tmplen = strlen(phost->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;
-         strncpy(pkey, MD5(phost->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((phost->passwd)+halflen, tmplen-halflen,
-            NULL), 16);        
-         EVP_EncryptInit_ex(&ctx_enc, EVP_aes_256_cfb(), NULL,    
-            pkey, iv);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);    
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-         vtun_syslog(LOG_INFO, "AES-256-CFB encryption initialized");
-      }
+         cipher_type = EVP_aes_256_cfb();
+         strcpy(cipher_name, "AES-256-CFB");
       break;
 
       case VTUN_ENC_AES256CBC:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
-         keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);      
-         tmplen = strlen(phost->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;   
-         strncpy(pkey, MD5(phost->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((phost->passwd)+halflen, tmplen-halflen,
-            NULL), 16);
-         EVP_EncryptInit_ex(&ctx_enc, EVP_aes_256_cbc(), NULL,
-            pkey, iv);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-         vtun_syslog(LOG_INFO, "AES-256-CBC encryption initialized");
-      }
+         cipher_type = EVP_aes_256_cbc();
+         strcpy(cipher_name, "AES-256-CBC");
       break;
 
       case VTUN_ENC_AES128OFB:
-         EVP_EncryptInit_ex(&ctx_enc, EVP_aes_128_ofb(), NULL,
-            MD5(phost->passwd,strlen(phost->passwd), NULL),iv);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
-         vtun_syslog(LOG_INFO, "AES-128-OFB encryption initialized");
+         cipher_type = EVP_aes_128_ofb();
+         strcpy(cipher_name, "AES-128-OFB");
       break;
       case VTUN_ENC_AES128CFB:
-         EVP_EncryptInit_ex(&ctx_enc, EVP_aes_128_cfb(), NULL,
-            MD5(phost->passwd,strlen(phost->passwd), NULL),iv);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
-         vtun_syslog(LOG_INFO, "AES-128-CFB encryption initialized");
+         cipher_type = EVP_aes_128_cfb();
+         strcpy(cipher_name, "AES-128-CFB");
       break;
       case VTUN_ENC_AES128CBC:
-         EVP_EncryptInit_ex(&ctx_enc, EVP_aes_128_cbc(), NULL,
-            MD5(phost->passwd,strlen(phost->passwd), NULL),iv);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
-         vtun_syslog(LOG_INFO, "AES-128-CBC encryption initialized");
+         cipher_type = EVP_aes_128_cbc();
+         strcpy(cipher_name, "AES-128-CBC");
       break;
 
       case VTUN_ENC_BF256OFB:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
-         keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);
-         tmplen = strlen(phost->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;
-         strncpy(pkey, MD5(phost->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((phost->passwd)+halflen, tmplen-halflen,
-            NULL), 16);
-         EVP_EncryptInit_ex(&ctx_enc, EVP_bf_ofb(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_enc, keysize);
-         EVP_EncryptInit_ex(&ctx_enc, NULL, NULL, pkey, iv);
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-         vtun_syslog(LOG_INFO, "Blowfish-256-OFB encryption initialized");
-      }
+         var_key = 1;
+         cipher_type = EVP_bf_ofb();
+         strcpy(cipher_name, "Blowfish-256-OFB");
       break;
       case VTUN_ENC_BF256CFB:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
-         keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);
-         tmplen = strlen(phost->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;
-         strncpy(pkey, MD5(phost->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((phost->passwd)+halflen, tmplen-halflen,
-            NULL), 16);
-         EVP_EncryptInit_ex(&ctx_enc, EVP_bf_cfb(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_enc, keysize);
-         EVP_EncryptInit_ex(&ctx_enc, NULL, NULL, pkey, iv);
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-         vtun_syslog(LOG_INFO, "Blowfish-256-CFB encryption initialized");
-      }
+         var_key = 1;
+         cipher_type = EVP_bf_cfb();
+         strcpy(cipher_name, "Blowfish-256-CFB");
       break;
 
       case VTUN_ENC_BF256CBC:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
-         keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);
-         tmplen = strlen(phost->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;
-         strncpy(pkey, MD5(phost->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((phost->passwd)+halflen, tmplen-halflen,
-            NULL), 16);
-         EVP_EncryptInit_ex(&ctx_enc, EVP_bf_cbc(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_enc, keysize);
-         EVP_EncryptInit_ex(&ctx_enc, NULL, NULL, pkey, iv);
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-         vtun_syslog(LOG_INFO, "Blowfish-256-CBC encryption initialized");
-      }
+         var_key = 1;
+         cipher_type = EVP_bf_cbc();
+         strcpy(cipher_name, "Blowfish-256-CBC");
       break;
 
       case VTUN_ENC_BF128OFB:
-         EVP_EncryptInit_ex(&ctx_enc, EVP_bf_ofb(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_enc, 16);
-         EVP_EncryptInit_ex(&ctx_enc, NULL, NULL,
-            MD5(phost->passwd,strlen(phost->passwd), NULL),iv);
-         vtun_syslog(LOG_INFO, "Blowfish-128-OFB encryption initialized");
+         var_key = 1;
+         cipher_type = EVP_bf_ofb();
+         strcpy(cipher_name, "Blowfish-128-OFB");
       break;
       case VTUN_ENC_BF128CFB:
-         EVP_EncryptInit_ex(&ctx_enc, EVP_bf_cfb(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_enc, 16);
-         EVP_EncryptInit_ex(&ctx_enc, NULL, NULL,
-            MD5(phost->passwd,strlen(phost->passwd), NULL),iv);
-         vtun_syslog(LOG_INFO, "Blowfish-128-CFB encryption initialized");
+         var_key = 1;
+         cipher_type = EVP_bf_cfb();
+         strcpy(cipher_name, "Blowfish-128-CFB");
       break;
       case VTUN_ENC_BF128CBC:
-         EVP_EncryptInit_ex(&ctx_enc, EVP_bf_cbc(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_enc, 16);
-         EVP_EncryptInit_ex(&ctx_enc, NULL, NULL,
-            MD5(phost->passwd,strlen(phost->passwd), NULL),iv);
-         vtun_syslog(LOG_INFO, "Blowfish-128-CBC encryption initialized");
+         var_key = 1;
+         cipher_type = EVP_bf_cbc();
+         strcpy(cipher_name, "Blowfish-128-CBC");
+      break;
+      default:
+      /* if we're here, something weird's going on */
+         return -1;
       break;
    } /* switch(cipher) */
+
+   EVP_CIPHER_CTX_init(&ctx_enc);
+   EVP_EncryptInit_ex(&ctx_enc, cipher_type, NULL, NULL, NULL);
+   if (var_key)
+      EVP_CIPHER_CTX_set_key_length(&ctx_enc, keysize);
+   EVP_EncryptInit_ex(&ctx_enc, NULL, NULL, pkey, NULL);
+   EVP_EncryptInit_ex(&ctx_enc, NULL, NULL, NULL, iv);
+   EVP_CIPHER_CTX_set_padding(&ctx_enc, 0);
+   if (enc_init_first_time)
+   {
+      sprintf(tmpstr,"%s encryption initialized", cipher_name);
+      vtun_syslog(LOG_INFO, tmpstr);
+      enc_init_first_time = 0;
+   }
    return 0;
 }
 
 int cipher_dec_init(char * iv)
 {
+   int var_key = 0;
+   const EVP_CIPHER *cipher_type;
+   char tmpstr[64];
+   char cipher_name[32];
+
    switch(cipher)
    {
       case VTUN_ENC_AES256OFB:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
-         keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {        
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);
-         tmplen = strlen(phost->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;
-         strncpy(pkey, MD5(phost->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((phost->passwd)+halflen, tmplen-halflen,
-            NULL), 16);        
-         EVP_DecryptInit_ex(&ctx_dec, EVP_aes_256_ofb(), NULL,    
-            pkey, iv);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);    
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-         vtun_syslog(LOG_INFO, "AES-256-OFB decryption initialized");
-      }
+         cipher_type = EVP_aes_256_ofb();
+         strcpy(cipher_name, "AES-256-OFB");
       break;
 
       case VTUN_ENC_AES256CFB:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
-         keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {        
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);
-         tmplen = strlen(phost->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;
-         strncpy(pkey, MD5(phost->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((phost->passwd)+halflen, tmplen-halflen,
-            NULL), 16);        
-         EVP_DecryptInit_ex(&ctx_dec, EVP_aes_256_cfb(), NULL,    
-            pkey, iv);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);    
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-         vtun_syslog(LOG_INFO, "AES-256-CFB decryption initialized");
-      }
+         cipher_type = EVP_aes_256_cfb();
+         strcpy(cipher_name, "AES-256-CFB");
       break;
 
       case VTUN_ENC_AES256CBC:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
-         keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);      
-         tmplen = strlen(phost->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;   
-         strncpy(pkey, MD5(phost->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((phost->passwd)+halflen, tmplen-halflen,
-            NULL), 16);
-         EVP_DecryptInit_ex(&ctx_dec, EVP_aes_256_cbc(), NULL,
-            pkey, iv);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-         vtun_syslog(LOG_INFO, "AES-256-CBC decryption initialized");
-      }
+         cipher_type = EVP_aes_256_cbc();
+         strcpy(cipher_name, "AES-256-CBC");
       break;
 
       case VTUN_ENC_AES128OFB:
-         EVP_DecryptInit_ex(&ctx_dec, EVP_aes_128_ofb(), NULL,
-            MD5(phost->passwd,strlen(phost->passwd), NULL), iv);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);
-         vtun_syslog(LOG_INFO, "AES-128-OFB decryption initialized");
+         cipher_type = EVP_aes_128_ofb();
+         strcpy(cipher_name, "AES-128-OFB");
       break;
       case VTUN_ENC_AES128CFB:
-         EVP_DecryptInit_ex(&ctx_dec, EVP_aes_128_cfb(), NULL,
-            MD5(phost->passwd,strlen(phost->passwd), NULL), iv);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);
-         vtun_syslog(LOG_INFO, "AES-128-CFB decryption initialized");
+         cipher_type = EVP_aes_128_cfb();
+         strcpy(cipher_name, "AES-128-CFB");
       break;
       case VTUN_ENC_AES128CBC:
-         EVP_DecryptInit_ex(&ctx_dec, EVP_aes_128_cbc(), NULL,
-            MD5(phost->passwd,strlen(phost->passwd), NULL), iv);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);
-         vtun_syslog(LOG_INFO, "AES-128-CBC decryption initialized");
+         cipher_type = EVP_aes_128_cbc();
+         strcpy(cipher_name, "AES-128-CBC");
       break;
 
       case VTUN_ENC_BF256OFB:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
-         keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);
-         tmplen = strlen(phost->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;
-         strncpy(pkey, MD5(phost->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((phost->passwd)+halflen, tmplen-halflen,
-            NULL), 16);
-         EVP_DecryptInit_ex(&ctx_dec, EVP_bf_ofb(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_dec, keysize);
-         EVP_DecryptInit_ex(&ctx_dec, NULL, NULL, pkey, iv);
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-         vtun_syslog(LOG_INFO, "Blowfish-256-OFB decryption initialized");
-      }
+         var_key = 1;
+         cipher_type = EVP_bf_ofb();
+         strcpy(cipher_name, "Blowfish-256-OFB");
       break;
       case VTUN_ENC_BF256CFB:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
-         keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);
-         tmplen = strlen(phost->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;
-         strncpy(pkey, MD5(phost->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((phost->passwd)+halflen, tmplen-halflen,
-            NULL), 16);
-         EVP_DecryptInit_ex(&ctx_dec, EVP_bf_cfb(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_dec, keysize);
-         EVP_DecryptInit_ex(&ctx_dec, NULL, NULL, pkey, iv);
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-         vtun_syslog(LOG_INFO, "Blowfish-256-CFB decryption initialized");
-      }
+         var_key = 1;
+         cipher_type = EVP_bf_cfb();
+         strcpy(cipher_name, "Blowfish-256-CFB");
       break;
       case VTUN_ENC_BF256CBC:
-      {
-         char * pkey;
-         int tmplen, halflen, keysize;
-         keysize = 32;
-         if ( !(pkey = malloc(keysize)) )
-         {
-            vtun_syslog(LOG_ERR,"Can't allocate buffer for key hash");
-            return -1;
-         }
-         memset(pkey,0,keysize);
-         tmplen = strlen(phost->passwd);
-         if (tmplen != 0) halflen = tmplen>>1;
-         else halflen = 0;
-         strncpy(pkey, MD5(phost->passwd, halflen, NULL), 16);
-         strncpy(pkey+halflen, MD5((phost->passwd)+halflen, tmplen-halflen,
-            NULL), 16);
-         EVP_DecryptInit_ex(&ctx_dec, EVP_bf_cbc(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_dec, keysize);
-         EVP_DecryptInit_ex(&ctx_dec, NULL, NULL, pkey, iv);
-         memset(pkey,0,keysize); free(pkey); pkey=NULL;
-         vtun_syslog(LOG_INFO, "Blowfish-256-CBC decryption initialized");
-      }
+         var_key = 1;
+         cipher_type = EVP_bf_cbc();
+         strcpy(cipher_name, "Blowfish-256-CBC");
       break;
 
       case VTUN_ENC_BF128OFB:
-         EVP_DecryptInit_ex(&ctx_dec, EVP_bf_ofb(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_dec, 16);
-         EVP_DecryptInit_ex(&ctx_dec, NULL, NULL,
-            MD5(phost->passwd,strlen(phost->passwd), NULL),iv);
-         vtun_syslog(LOG_INFO, "Blowfish-128-OFB decryption initialized");
+         var_key = 1;
+         cipher_type = EVP_bf_ofb();
+         strcpy(cipher_name, "Blowfish-128-OFB");
       break;
       case VTUN_ENC_BF128CFB:
-         EVP_DecryptInit_ex(&ctx_dec, EVP_bf_cfb(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_dec, 16);
-         EVP_DecryptInit_ex(&ctx_dec, NULL, NULL,
-            MD5(phost->passwd,strlen(phost->passwd), NULL),iv);
-         vtun_syslog(LOG_INFO, "Blowfish-128-CFB decryption initialized");
+         var_key = 1;
+         cipher_type = EVP_bf_cfb();
+         strcpy(cipher_name, "Blowfish-128-CFB");
       break;
       case VTUN_ENC_BF128CBC:
-         EVP_DecryptInit_ex(&ctx_dec, EVP_bf_cbc(), NULL, NULL, NULL);
-         EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);
-         EVP_CIPHER_CTX_set_key_length(&ctx_dec, 16);
-         EVP_DecryptInit_ex(&ctx_dec, NULL, NULL,
-            MD5(phost->passwd,strlen(phost->passwd), NULL),iv);
-         vtun_syslog(LOG_INFO, "Blowfish-128-CBC decryption initialized");
+         var_key = 1;
+         cipher_type = EVP_bf_cbc();
+         strcpy(cipher_name, "Blowfish-128-CBC");
+      break;
+      default:
+      /* if we're here, something weird's going on */
+         return -1;
       break;
    } /* switch(cipher) */
+
+   EVP_CIPHER_CTX_init(&ctx_dec);
+   EVP_DecryptInit_ex(&ctx_dec, cipher_type, NULL, NULL, NULL);
+   if (var_key)
+      EVP_CIPHER_CTX_set_key_length(&ctx_dec, keysize);
+   EVP_DecryptInit_ex(&ctx_dec, NULL, NULL, pkey, NULL);
+   EVP_DecryptInit_ex(&ctx_dec, NULL, NULL, NULL, iv);
+   EVP_CIPHER_CTX_set_padding(&ctx_dec, 0);
+   if (dec_init_first_time)
+   {
+      sprintf(tmpstr,"%s decryption initialized", cipher_name);
+      vtun_syslog(LOG_INFO, tmpstr);
+      dec_init_first_time = 0;
+   }
    return 0;
 }
 
@@ -795,7 +559,7 @@ int send_msg(int len, char *in, char **out)
             &outlen, in_ptr, blocksize*2);
          *out = in_ptr;
          len = outlen;
-         cipher_enc_state = CIPHER_CODE;
+         cipher_enc_state = CIPHER_SEQUENCE;
       break;
 
       case CIPHER_CODE:
@@ -827,12 +591,43 @@ int recv_msg(int len, char *in, char **out)
 
             *out = in_ptr + blocksize*2;
             len -= blocksize*2;
-            cipher_dec_state = CIPHER_CODE;
+            cipher_dec_state = CIPHER_SEQUENCE;
+            gibberish = 0;
          } 
          else 
          {
             len = 0;
             *out = in;
+            gibberish++;
+
+            if (gibberish == MIN_GIBBERISH)
+            {
+               cipher_enc_state = CIPHER_REQ_INIT;
+               send_a_packet = 1;
+#ifdef LFD_ENCRYPT_DEBUG
+               vtun_syslog(LOG_INFO, 
+                  "Min. gibberish threshold reached");
+#endif
+            }
+            if (gibberish > MAX_GIBBERISH)
+            {
+               gibberish = 0;
+               send_a_packet = 1;
+
+#ifdef LFD_ENCRYPT_DEBUG
+               vtun_syslog(LOG_INFO, 
+                  "Max. gibberish threshold reached");
+#endif
+               if (cipher_enc_state != CIPHER_INIT)
+               {
+                  cipher_enc_state = CIPHER_INIT;
+                  EVP_CIPHER_CTX_cleanup(&ctx_enc);
+#ifdef LFD_ENCRYPT_DEBUG
+                  vtun_syslog(LOG_INFO, 
+                     "Forcing local encryptor re-init");
+#endif
+               }
+            }
          }
          memset(iv,0,blocksize); free(iv); iv = NULL;
          memset(in_ptr,0,blocksize*2);         
@@ -846,6 +641,92 @@ int recv_msg(int len, char *in, char **out)
    return len;
 }
 
+/* Send In-Band Message */
+int send_ib_mesg(int *len, char **in)
+{
+   char *in_ptr = *in;
+
+   /* To simplify matters, I assume that blocksize
+         will not be less than 8 bytes */
+   if (cipher_enc_state == CIPHER_SEQUENCE)
+   {
+      in_ptr -= blocksize;
+      memset(in_ptr,0,blocksize);
+      strncpy(in_ptr,"seq#",4);
+      in_ptr+=4;
+      *((unsigned long *)in_ptr) = htonl(sequence_num);
+      in_ptr-=4;
+
+      *in = in_ptr;
+      *len += blocksize;
+   }
+   else if (cipher_enc_state == CIPHER_REQ_INIT)
+   {
+      in_ptr -= blocksize;
+      memset(in_ptr,0,blocksize);
+      strncpy(in_ptr,"rsyn",4);
+      in_ptr+=4;
+      *((unsigned long *)in_ptr) = htonl(sequence_num);
+      in_ptr-=4;
+
+      *in = in_ptr;
+      *len += blocksize;
+#ifdef LFD_ENCRYPT_DEBUG
+      vtun_syslog(LOG_INFO, "Requesting remote encryptor re-init");      
+#endif
+      cipher_enc_state = CIPHER_SEQUENCE;
+      send_a_packet = 1; 
+   }
+   return 0;
+}
+
+/* Receive In-Band Message */
+int recv_ib_mesg(int *len, char **in)
+{
+   char *in_ptr = *in;
+
+   if (cipher_dec_state == CIPHER_SEQUENCE)
+   {
+      /* To simplify matters, I assume that blocksize
+         will not be less than 8 bytes */
+      if ( !strncmp(in_ptr, "seq#", 4) )
+      {
+         *in += blocksize;
+         *len -= blocksize;
+      }
+      else if ( !strncmp(in_ptr, "rsyn", 4) )
+      {
+         *in += blocksize;
+         *len -= blocksize;
+
+         if (cipher_enc_state != CIPHER_INIT)
+         {
+            cipher_enc_state = CIPHER_INIT;
+            EVP_CIPHER_CTX_cleanup(&ctx_enc);
+         }
+#ifdef LFD_ENCRYPT_DEBUG
+         vtun_syslog(LOG_INFO, "Remote requests encryptor re-init");
+#endif
+      }
+      else
+      {
+         *len = 0;
+
+         if (cipher_dec_state != CIPHER_INIT &&
+             cipher_enc_state != CIPHER_REQ_INIT &&
+             cipher_enc_state != CIPHER_INIT)
+         {
+            EVP_CIPHER_CTX_cleanup (&ctx_dec);
+            cipher_dec_state = CIPHER_INIT;
+            cipher_enc_state = CIPHER_REQ_INIT;
+         }
+#ifdef LFD_ENCRYPT_DEBUG
+         vtun_syslog(LOG_INFO, "Local decryptor out of sync");
+#endif
+      }
+   }
+   return 0;
+}
 /* 
  * Module structure.
  */
