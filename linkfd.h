@@ -23,10 +23,13 @@
 #define _LINKFD_H
 
 /* Priority of the process in the link_fd function */
-#define LINKFD_PRIO -19
-
+/* Never set the priority to -19 without stating a good reason.
+ *#define LINKFD_PRIO -19
+ * Since the likely intent was just to give vtun an edge,
+ * -1 will do nicely.
+ */
+#define LINKFD_PRIO -1
 /* Frame alloc/free */
-//#define LINKFD_FRAME_RESERV 8
 #define LINKFD_FRAME_RESERV 128
 #define LINKFD_FRAME_APPEND 64
 
