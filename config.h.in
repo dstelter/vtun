@@ -56,8 +56,13 @@
 /* Define if you have ZLIB */
 #undef HAVE_ZLIB
 
-/*Define if you have LZO */
+/* Define if you have LZO */
 #undef HAVE_LZO
+
+/* Define if you have OpenSSL */
+#undef HAVE_SSL
+
+#undef HAVE_SHAPER
 
 /* Release version and date */
 #undef VTUN_VER
