@@ -134,7 +134,7 @@ if test "$SSL" = "yes"; then
    AC_MSG_RESULT()
    AC_CHECKING( for md5 Library and Header files ... )
 AC_SEARCH_HEADERS(md5.h,
-    $SSL_HDR_DIR /usr/include/openssl "" /usr/include /usr/include/ssl /usr/local/include /usr/local/ssl/include, /usr/include/sys, 
+    $SSL_HDR_DIR /usr/include/openssl "" /usr/include /usr/include/ssl /usr/local/include /usr/local/ssl/include /usr/include/sys, 
     ,
     AC_MSG_ERROR( SSL headers not found. )
    )
@@ -149,10 +149,41 @@ if test "$SSL" = "yes"; then
 	    [
 	       LIBS="$LIBS -lcrypto"
 	       AC_DEFINE(HAVE_SSL)
+	       AC_DEFINE(HAVE_SSL_BLOWFISH)
 	    ],
 	    AC_MSG_ERROR( SSL library not found. )
 	),
 	AC_MSG_ERROR( SSL headers not found. )
+   )
+fi
+
+if test "$SSL" = "yes"; then
+   AC_MSG_RESULT()
+   AC_CHECKING( for AES Library and Header files ... )
+   AC_SEARCH_HEADERS(aes.h,
+    $SSL_HDR_DIR /usr/include/ssl /usr/include/openssl /usr/include /usr/local/include /usr/local/ssl/include  /usr/include/crypto,
+	AC_CHECK_LIB(crypto, AES_set_encrypt_key,
+	    [
+	       AC_DEFINE(HAVE_SSL_AES)
+	    ],
+	    AC_MSG_ERROR( AES library not found. )
+	),
+	AC_MSG_ERROR( AES headers not found. )
+   )
+fi
+
+if test "$SSL" = "yes"; then
+   AC_MSG_RESULT()
+   AC_CHECKING( for EVP Library and Header files ... )
+   AC_SEARCH_HEADERS(evp.h,
+    $SSL_HDR_DIR /usr/include/ssl /usr/include/openssl /usr/include /usr/local/include /usr/local/ssl/include  /usr/include/crypto,
+	AC_CHECK_LIB(crypto, EVP_EncryptInit,
+	    [
+	       AC_DEFINE(HAVE_SSL_EVP)
+	    ],
+	    AC_MSG_ERROR( EVP library not found. )
+	),
+	AC_MSG_ERROR( EVP headers not found. )
    )
 fi
 

@@ -2065,7 +2065,7 @@ echo "configure:2064: checking for md5 Library and Header files ... " >&5
     echo $ac_n "checking "for md5.h"""... $ac_c" 1>&6
 echo "configure:2067: checking "for md5.h"" >&5 
     ac_hdr_found=no
-    for p in $SSL_HDR_DIR /usr/include/openssl "" /usr/include /usr/include/ssl /usr/local/include /usr/local/ssl/include; do
+    for p in $SSL_HDR_DIR /usr/include/openssl "" /usr/include /usr/include/ssl /usr/local/include /usr/local/ssl/include /usr/include/sys; do
 	if test -n "$p"; then
 	  dir="$p"
 	else
@@ -2096,10 +2096,11 @@ echo "configure:2067: checking "for md5.h"" >&5
 	  CPPFLAGS="$CPPFLAGS -I$p"
 	fi
         echo "$ac_t""($dir) yes " 1>&6 
-	/usr/include/sys
+	:
     else
         echo "$ac_t"""no"" 1>&6 
-	:
+	{ echo "configure: error: SSL headers not found. " 1>&2; exit 1; }
+   
     fi
 
 fi
@@ -2107,10 +2108,10 @@ fi
 if test "$SSL" = "yes"; then
    echo "$ac_t""" 1>&6
    echo "checking for blowfish Library and Header files ... " 1>&6
-echo "configure:2111: checking for blowfish Library and Header files ... " >&5
+echo "configure:2112: checking for blowfish Library and Header files ... " >&5
    
     echo $ac_n "checking "for blowfish.h"""... $ac_c" 1>&6
-echo "configure:2114: checking "for blowfish.h"" >&5 
+echo "configure:2115: checking "for blowfish.h"" >&5 
     ac_hdr_found=no
     for p in $BLOWFISH_HDR_DIR /usr/include/ssl /usr/include/openssl /usr/include /usr/local/include /usr/local/ssl/include  /usr/include/crypto; do
 	if test -n "$p"; then
@@ -2144,7 +2145,7 @@ echo "configure:2114: checking "for blowfish.h"" >&5
 	fi
         echo "$ac_t""($dir) yes " 1>&6 
 	echo $ac_n "checking for BF_set_key in -lcrypto""... $ac_c" 1>&6
-echo "configure:2148: checking for BF_set_key in -lcrypto" >&5
+echo "configure:2149: checking for BF_set_key in -lcrypto" >&5
 ac_lib_var=`echo crypto'_'BF_set_key | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2152,7 +2153,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lcrypto  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2156 "configure"
+#line 2157 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2163,7 +2164,7 @@ int main() {
 BF_set_key()
 ; return 0; }
 EOF
-if { (eval echo configure:2167: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2168: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2184,6 +2185,10 @@ if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
 #define HAVE_SSL 1
 EOF
 
+	       cat >> confdefs.h <<\EOF
+#define HAVE_SSL_BLOWFISH 1
+EOF
+
 	    
 else
   echo "$ac_t""no" 1>&6
@@ -2199,12 +2204,200 @@ fi
 
 fi
 
+if test "$SSL" = "yes"; then
+   echo "$ac_t""" 1>&6
+   echo "checking for AES Library and Header files ... " 1>&6
+echo "configure:2211: checking for AES Library and Header files ... " >&5
+   
+    echo $ac_n "checking "for aes.h"""... $ac_c" 1>&6
+echo "configure:2214: checking "for aes.h"" >&5 
+    ac_hdr_found=no
+    for p in $SSL_HDR_DIR /usr/include/ssl /usr/include/openssl /usr/include /usr/local/include /usr/local/ssl/include  /usr/include/crypto; do
+	if test -n "$p"; then
+	  dir="$p"
+	else
+	  dir="/usr/include"
+	fi
+	
+    ac_file_found=yes
+    for f in aes.h; do
+	if test ! -f $dir/$f; then
+    	   ac_file_found=no
+	   break;
+	fi
+    done
+
+    if test "$ac_file_found" = "yes" ; then
+	 
+     	       ac_hdr_found=yes
+	       break
+	    
+	
+    else
+	:
+    fi
+
+    done 
+    if test "$ac_hdr_found" = "yes" ; then
+	if test -n "$p"; then
+	  CPPFLAGS="$CPPFLAGS -I$p"
+	fi
+        echo "$ac_t""($dir) yes " 1>&6 
+	echo $ac_n "checking for AES_set_encrypt_key in -lcrypto""... $ac_c" 1>&6
+echo "configure:2248: checking for AES_set_encrypt_key in -lcrypto" >&5
+ac_lib_var=`echo crypto'_'AES_set_encrypt_key | sed 'y%./+-%__p_%'`
+if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  ac_save_LIBS="$LIBS"
+LIBS="-lcrypto  $LIBS"
+cat > conftest.$ac_ext <<EOF
+#line 2256 "configure"
+#include "confdefs.h"
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char AES_set_encrypt_key();
+
+int main() {
+AES_set_encrypt_key()
+; return 0; }
+EOF
+if { (eval echo configure:2267: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+  rm -rf conftest*
+  eval "ac_cv_lib_$ac_lib_var=yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_lib_$ac_lib_var=no"
+fi
+rm -f conftest*
+LIBS="$ac_save_LIBS"
+
+fi
+if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+  
+	       cat >> confdefs.h <<\EOF
+#define HAVE_SSL_AES 1
+EOF
+
+	    
+else
+  echo "$ac_t""no" 1>&6
+{ echo "configure: error: AES library not found. " 1>&2; exit 1; }
+	
+fi
+
+    else
+        echo "$ac_t"""no"" 1>&6 
+	{ echo "configure: error: AES headers not found. " 1>&2; exit 1; }
+   
+    fi
+
+fi
+
+if test "$SSL" = "yes"; then
+   echo "$ac_t""" 1>&6
+   echo "checking for EVP Library and Header files ... " 1>&6
+echo "configure:2305: checking for EVP Library and Header files ... " >&5
+   
+    echo $ac_n "checking "for evp.h"""... $ac_c" 1>&6
+echo "configure:2308: checking "for evp.h"" >&5 
+    ac_hdr_found=no
+    for p in $SSL_HDR_DIR /usr/include/ssl /usr/include/openssl /usr/include /usr/local/include /usr/local/ssl/include  /usr/include/crypto; do
+	if test -n "$p"; then
+	  dir="$p"
+	else
+	  dir="/usr/include"
+	fi
+	
+    ac_file_found=yes
+    for f in evp.h; do
+	if test ! -f $dir/$f; then
+    	   ac_file_found=no
+	   break;
+	fi
+    done
+
+    if test "$ac_file_found" = "yes" ; then
+	 
+     	       ac_hdr_found=yes
+	       break
+	    
+	
+    else
+	:
+    fi
+
+    done 
+    if test "$ac_hdr_found" = "yes" ; then
+	if test -n "$p"; then
+	  CPPFLAGS="$CPPFLAGS -I$p"
+	fi
+        echo "$ac_t""($dir) yes " 1>&6 
+	echo $ac_n "checking for EVP_EncryptInit in -lcrypto""... $ac_c" 1>&6
+echo "configure:2342: checking for EVP_EncryptInit in -lcrypto" >&5
+ac_lib_var=`echo crypto'_'EVP_EncryptInit | sed 'y%./+-%__p_%'`
+if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  ac_save_LIBS="$LIBS"
+LIBS="-lcrypto  $LIBS"
+cat > conftest.$ac_ext <<EOF
+#line 2350 "configure"
+#include "confdefs.h"
+/* Override any gcc2 internal prototype to avoid an error.  */
+/* We use char because int might match the return type of a gcc2
+    builtin and then its argument prototype would still apply.  */
+char EVP_EncryptInit();
+
+int main() {
+EVP_EncryptInit()
+; return 0; }
+EOF
+if { (eval echo configure:2361: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+  rm -rf conftest*
+  eval "ac_cv_lib_$ac_lib_var=yes"
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_lib_$ac_lib_var=no"
+fi
+rm -f conftest*
+LIBS="$ac_save_LIBS"
+
+fi
+if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+  
+	       cat >> confdefs.h <<\EOF
+#define HAVE_SSL_EVP 1
+EOF
+
+	    
+else
+  echo "$ac_t""no" 1>&6
+{ echo "configure: error: EVP library not found. " 1>&2; exit 1; }
+	
+fi
+
+    else
+        echo "$ac_t"""no"" 1>&6 
+	{ echo "configure: error: EVP headers not found. " 1>&2; exit 1; }
+   
+    fi
+
+fi
+
 if test "$SOCKS" = "yes"; then
    echo "$ac_t""" 1>&6
    echo "checking for SOCKS Library ... " 1>&6
-echo "configure:2206: checking for SOCKS Library ... " >&5
+echo "configure:2399: checking for SOCKS Library ... " >&5
    echo $ac_n "checking for SOCKSconnect in -lsocks5""... $ac_c" 1>&6
-echo "configure:2208: checking for SOCKSconnect in -lsocks5" >&5
+echo "configure:2401: checking for SOCKSconnect in -lsocks5" >&5
 ac_lib_var=`echo socks5'_'SOCKSconnect | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2212,7 +2405,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lsocks5  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2216 "configure"
+#line 2409 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2223,7 +2416,7 @@ int main() {
 SOCKSconnect()
 ; return 0; }
 EOF
-if { (eval echo configure:2227: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2420: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2245,7 +2438,7 @@ if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
 else
   echo "$ac_t""no" 1>&6
 echo $ac_n "checking for Rconnect in -lsocks""... $ac_c" 1>&6
-echo "configure:2249: checking for Rconnect in -lsocks" >&5
+echo "configure:2442: checking for Rconnect in -lsocks" >&5
 ac_lib_var=`echo socks'_'Rconnect | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2253,7 +2446,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lsocks  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2257 "configure"
+#line 2450 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2264,7 +2457,7 @@ int main() {
 Rconnect()
 ; return 0; }
 EOF
-if { (eval echo configure:2268: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2461: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2299,12 +2492,12 @@ echo "$ac_t""" 1>&6
 for ac_func in getpt grantpt unlockpt ptsname
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
-echo "configure:2303: checking for $ac_func" >&5
+echo "configure:2496: checking for $ac_func" >&5
 if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2308 "configure"
+#line 2501 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char $ac_func(); below.  */
@@ -2327,7 +2520,7 @@ $ac_func();
 
 ; return 0; }
 EOF
-if { (eval echo configure:2331: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2524: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_func_$ac_func=yes"
 else
@@ -2360,17 +2553,17 @@ case $host_os in
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:2364: checking for $ac_hdr" >&5
+echo "configure:2557: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2369 "configure"
+#line 2562 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2374: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2567: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
 if test -z "$ac_err"; then
   rm -rf conftest*

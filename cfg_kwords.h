@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: cfg_kwords.h,v 1.1.1.1.2.3 2001/12/29 17:01:01 bergolth Exp $
+ * cfg_kwords.h,v 1.1.1.1.2.3 2001/12/29 17:01:01 bergolth Exp
  */ 
 
 extern int lineno;
@@ -80,5 +80,7 @@ struct kword cfg_param[] = {
    { "inetd",	 VTUN_INETD },
    { "stand",	 VTUN_STAND_ALONE },
    { "keep",     VTUN_PERSIST_KEEPIF },
+   { "blowfish128ecb", VTUN_ENC_BF128ECB },
+   { "aes128ecb",      VTUN_ENC_AES128ECB },
    { NULL , 0 }
 };

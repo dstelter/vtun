@@ -256,9 +256,10 @@ host_option: '\n'
 			compress
 
   | K_ENCRYPT NUM 	{  
-			  if( $2 )
+			  if( $2 ){
 			     parse_host->flags |= VTUN_ENCRYPT;
-			  else
+			     parse_host->cipher = $2;
+			  } else
 			     parse_host->flags &= ~VTUN_ENCRYPT;
 			}
 

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: vtun.h,v 1.7.2.6 2001/12/29 17:01:01 bergolth Exp $
+ * vtun.h,v 1.7.2.6 2001/12/29 17:01:01 bergolth Exp
  */ 
 #ifndef _VTUN_H
 #define _VTUN_H
@@ -93,6 +93,7 @@ struct vtun_host {
    int  spd_in;
    int  spd_out;
    int  zlevel;
+   int  cipher;
 
    int  rmt_fd;
    int  loc_fd;
@@ -133,6 +134,10 @@ extern llist host_list;
 #define VTUN_LZO        0x0002
 #define VTUN_SHAPE      0x0004
 #define VTUN_ENCRYPT    0x0008
+
+/* Cipher options */
+#define VTUN_ENC_BF128ECB	1
+#define VTUN_ENC_AES128ECB	2
 
 /* Mask to drop the flags which will be supplied by the server */
 #define VTUN_CLNT_MASK  0xf000
