@@ -15,7 +15,7 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 #
-#   $Id: Makefile.in,v 1.6.2.1 2001/08/06 23:16:35 maxk Exp $
+#   Makefile.in,v 1.6.2.1 2001/08/06 23:16:35 maxk Exp
 #  
 CC = @CC@
 CFLAGS = @CFLAGS@ @CPPFLAGS@
@@ -54,7 +54,7 @@ OBJS = main.o cfg_file.tab.o cfg_file.lex.o server.o client.o lib.o \
 
 CONFIGURE_FILES = Makefile config.status config.cache config.h config.log 
 
-.c.o:
+%.o: %.c vtun.h
 	$(CC) $(CFLAGS) $(DEFS) -c $<
 
 vtund: $(OBJS)
