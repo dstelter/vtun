@@ -23,7 +23,7 @@
 # now apply the components
 # If anyone can find system that strangers understand, that still
 # enables one SRPM to build for 17 distros, I'm open to suggestions.
-%define	_requires	%{expand:%%{?_requires_%{_dis}%{_tro}:%%_requires_%{_dis}%{_tro}}%%{!?_requires_%{_dis}%{_tro}:%%{?_requires_%{_dis}:%%_requires_%{_dis}}%%{!?_requires_%{_dis}:%{_requires}}}}
+%define	_requires	%{expand:%%{?_requires_%{_dis}%{_tro}:%%_requires_%{_dis}%{_tro}}%%{!?_requires_%{_dis}%{_tro}:%%{?_requires_%{_dis}:%%_requires_%{_dis}}%%{!?_requires_%{_dis}:%{_requires_}}}}
 %define	rc_dir	%{expand:%%{?rc_dir_%{_dis}%{_tro}:%%rc_dir_%{_dis}%{_tro}}%%{!?rc_dir_%{_dis}%{_tro}:%%{?rc_dir_%{_dis}:%%rc_dir_%{_dis}}%%{!?rc_dir_%{_dis}:/etc/rc.d/init.d}}}
 %define	lock_dir	%{expand:%%{?lock_dir_%{_dis}%{_tro}:%%lock_dir_%{_dis}%{_tro}}%%{!?lock_dir_%{_dis}%{_tro}:%%{?lock_dir_%{_dis}:%%lock_dir_%{_dis}}%%{!?lock_dir_%{_dis}:/var/lock/vtund}}}
 %define	log_dir	%{expand:%%{?log_dir_%{_dis}%{_tro}:%%log_dir_%{_dis}%{_tro}}%%{!?log_dir_%{_dis}%{_tro}:%%{?log_dir_%{_dis}:%%log_dir_%{_dis}}%%{!?log_dir_%{_dis}:/var/log/vtund}}}
@@ -51,7 +51,7 @@ BuildRequires: 	automake
 
 # please check the FAQ for this question, and mail Bishop if there is
 # no FAQ entry.
-%define	_requires	tun zlib-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel}
+%define	_requires_	tun zlib-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel}
 
 # Caldera has funny zlib
 %define	_requires_ol	tun libz-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO:lzo-devel}
