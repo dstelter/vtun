@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: cfg_file.y,v 1.1.1.2.2.6 2001/06/09 13:10:16 bergolth Exp $
+ * $Id: cfg_file.y,v 1.1.1.2.2.7 2001/06/10 22:48:38 maxk Exp $
  */ 
 
 #include "config.h"
@@ -26,8 +26,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <syslog.h>
 #include <stdarg.h>
+
+#define SYSLOG_NAMES
+#include <syslog.h>
 
 #include "vtun.h"
 
@@ -41,15 +43,17 @@ struct vtun_cmd parse_cmd;
 
 llist host_list;
 
-int cfg_error(const char *fmt, ...);
-int add_cmd(llist *cmds, char *prog, char *args, int flags);
+int  cfg_error(const char *fmt, ...);
+int  add_cmd(llist *cmds, char *prog, char *args, int flags);
 void *cp_cmd(void *d, void *u);
-int free_cmd(void *d, void *u);
+int  free_cmd(void *d, void *u);
 
 void copy_addr(struct vtun_host *to, struct vtun_host *from);
-int free_host(void *d, void *u);
+int  free_host(void *d, void *u);
 void free_addr(struct vtun_host *h);
 void free_host_list(void);
+
+int  parse_syslog(char *facility);
 
 int yyparse(void);
 int yylex(void);	
@@ -70,7 +74,7 @@ int yyerror(char *s);
 %token K_PASSWD K_PROG K_PPP K_SPEED K_IFCFG K_FWALL K_ROUTE K_DEVICE 
 %token K_MULTI K_SRCADDR K_IFACE K_ADDR
 %token K_TYPE K_PROT K_COMPRESS K_ENCRYPT K_KALIVE K_STAT
-%token K_UP K_DOWN
+%token K_UP K_DOWN K_SYSLOG
 
 %token <str> K_HOST K_ERROR
 %token <str> WORD PATH STRING
@@ -140,37 +144,65 @@ option:  '\n'
 			  if(vtun.svr_port == -1)
 			     vtun.svr_port = $2;
 			} 
+
   | K_TYPE NUM 		{ 
 			  if(vtun.svr_type == -1)
 			     vtun.svr_type = $2;
 			} 
+
   | K_TIMEOUT NUM 	{  
 			  if(vtun.timeout == -1)
 			     vtun.timeout = $2; 	
 			}
+
   | K_PPP   PATH	{
 			  free(vtun.ppp);
 			  vtun.ppp = strdup($2);
 			}
+
   | K_IFCFG PATH	{
 			  free(vtun.ifcfg);
 			  vtun.ifcfg = strdup($2);
 			}
+
   | K_ROUTE PATH 	{   
 			  free(vtun.route);  
 			  vtun.route = strdup($2); 	
 			}		
+
   | K_FWALL PATH 	{   
 			  free(vtun.fwall);  
 			  vtun.fwall = strdup($2); 	
 			}
+
+  | K_SYSLOG  syslog_opt
+
   | K_PERSIST NUM 	{ 
 			  if(vtun.persist == -1) 
 			     vtun.persist = $2; 	
 			}
+
   | K_ERROR		{
 			  cfg_error("Unknown option '%s'",$1);
 			  YYABORT;
+			}
+  ;
+
+syslog_opt:
+  NUM 			{
+                          vtun.syslog = $1;
+  			}
+
+  | WORD 	        {
+                          if (parse_syslog($1)) {
+                            cfg_error("Unknown syslog facility '%s'", $1);
+                            YYABORT;
+                          }
+                        }
+
+  | K_ERROR 		{
+   			  cfg_error("Unknown keepalive option '%s'",$1);
+  			  YYABORT;
 			}
   ;
 
@@ -186,16 +218,20 @@ host_option: '\n'
 			  free(parse_host->passwd);
 			  parse_host->passwd = strdup($2);
 			}
+
   | K_DEVICE WORD 	{
 			  free(parse_host->dev);
 			  parse_host->dev = strdup($2);
 			}	
+
   | K_MULTI NUM		{ 
 			  parse_host->multi = $2;
 			}
+
   | K_TIMEOUT NUM	{ 
 			  parse_host->timeout = $2;
 			}
+
   | K_SPEED NUM 	{ 
 			  if( $2 ){ 
 			     parse_host->spd_in = parse_host->spd_out = $2;
@@ -203,6 +239,7 @@ host_option: '\n'
 			  } else 
 			     parse_host->flags &= ~VTUN_SHAPE;
 			}
+
   | K_SPEED DNUM 	{ 
 			  if( yylval.dnum.num1 || yylval.dnum.num2 ){ 
 			     parse_host->spd_out = yylval.dnum.num1;
@@ -211,6 +248,7 @@ host_option: '\n'
 			  } else 
 			     parse_host->flags &= ~VTUN_SHAPE;
 			}
+
   | K_COMPRESS 		{
 			  parse_host->flags &= ~(VTUN_ZLIB | VTUN_LZO); 
 			}
@@ -222,6 +260,7 @@ host_option: '\n'
 			  else
 			     parse_host->flags &= ~VTUN_ENCRYPT;
 			}
+
   | K_KALIVE 		{
 			  parse_host->flags &= ~VTUN_KEEP_ALIVE; 
 			}
@@ -233,6 +272,7 @@ host_option: '\n'
 			  else
 			     parse_host->flags &= ~VTUN_STAT;
 			}
+
   | K_PERSIST NUM 	{ 
 			  if( $2 ) 
 			     parse_host->flags |= VTUN_PERSIST;
@@ -242,24 +282,29 @@ host_option: '\n'
 			  if(vtun.persist == -1) 
 			     vtun.persist = $2; 	
 			}
+
   | K_TYPE NUM 		{  
 			  parse_host->flags &= ~VTUN_TYPE_MASK;
 			  parse_host->flags |= $2;
 			}	
+
   | K_PROT NUM 		{  
 			  parse_host->flags &= ~VTUN_PROT_MASK;
 			  parse_host->flags |= $2;
 			}
+
   | K_SRCADDR 		'{' srcaddr_options '}'
 
   | K_UP 	        { 
 			  parse_cmds = &parse_host->up; 
    			  llist_free(parse_cmds, free_cmd, NULL);   
 			} '{' command_options '}' 
+
   | K_DOWN 	        { 
 			  parse_cmds = &parse_host->down; 
    			  llist_free(parse_cmds, free_cmd, NULL);   
 			} '{' command_options '}' 
+
   | K_ERROR		{
 			  cfg_error("Unknown option '%s'",$1);
 			  YYABORT;
@@ -273,10 +318,12 @@ compress:
 			     parse_host->zlevel = $1;
 			  }
 			}
+
   | DNUM		{
 			  parse_host->flags |= yylval.dnum.num1;
 		          parse_host->zlevel = yylval.dnum.num2;
   			}
+
   | K_ERROR		{
 			  cfg_error("Unknown compression '%s'",$1);
 			  YYABORT;
@@ -288,6 +335,7 @@ keepalive:
 			  if( $1 )
 			     parse_host->flags |= VTUN_KEEP_ALIVE;
 			}
+
   | DNUM		{
 			  if( yylval.dnum.num1 ){
 			     parse_host->flags |= VTUN_KEEP_ALIVE;
@@ -295,6 +343,7 @@ keepalive:
 		             parse_host->ka_failure  = yylval.dnum.num2;
 			  }
   			}
+
   | K_ERROR		{
 			  cfg_error("Unknown keepalive option '%s'",$1);
 			  YYABORT;
@@ -312,19 +361,23 @@ srcaddr_option:
 			  parse_host->src_addr.name = strdup($2);
 			  parse_host->src_addr.type = VTUN_ADDR_NAME;
 			}
+
   | K_IFACE WORD	{
 			  free_addr(parse_host);
 			  parse_host->src_addr.name = strdup($2);
 			  parse_host->src_addr.type = VTUN_ADDR_IFACE;
 			}
+
   | K_IFACE STRING	{
 			  free_addr(parse_host);
 			  parse_host->src_addr.name = strdup($2);
 			  parse_host->src_addr.type = VTUN_ADDR_IFACE;
 			}
+
   | K_PORT NUM 		{
 			  parse_host->src_addr.port = $2;
 			}
+
   | K_ERROR		{
 			  cfg_error("Unknown option '%s'",$1);
 			  YYABORT;
@@ -344,22 +397,27 @@ command_option: '\n'
 			  add_cmd(parse_cmds, parse_cmd.prog, 
 				  parse_cmd.args, parse_cmd.flags);
 			}
+
   | K_PPP STRING 	{   
 			  add_cmd(parse_cmds, strdup(vtun.ppp), strdup($2), 
 					VTUN_CMD_DELAY);
 			}		
+
   | K_IFCFG STRING 	{   
 			  add_cmd(parse_cmds, strdup(vtun.ifcfg),strdup($2),
 					VTUN_CMD_WAIT);
 			}
+
   | K_ROUTE STRING 	{   
 			  add_cmd(parse_cmds, strdup(vtun.route),strdup($2),
 					VTUN_CMD_WAIT);
 			}
+
   | K_FWALL STRING 	{   
 			  add_cmd(parse_cmds, strdup(vtun.fwall),strdup($2),
 					VTUN_CMD_WAIT);
 			}
+
   | K_ERROR		{
 			  cfg_error("Unknown cmd '%s'",$1);
 			  YYABORT;
@@ -375,9 +433,11 @@ prog_option:
   PATH  		{
 			  parse_cmd.prog = strdup($1);
 			}
+
   | STRING 		{
 			  parse_cmd.args = strdup($1);
 			}
+
   | NUM		   	{
 			  parse_cmd.flags = $1;
 			}
@@ -466,7 +526,7 @@ int free_host(void *d, void *u)
 {
    struct vtun_host *h = d;
 
-   if(u && !strcmp(h->host, u))
+   if (u && !strcmp(h->host, u))
       return 1;
 
    free(h->host);   
@@ -491,6 +551,18 @@ inline struct vtun_host* find_host(char *host)
 inline void free_host_list(void)
 {
    llist_free(&host_list, free_host, NULL);
+}
+
+int parse_syslog(char *facility)
+{
+   int i;
+
+   for (i=0; facilitynames[i].c_name;i++) {
+      if (!strcmp(facilitynames[i].c_name, facility)) {
+         vtun.syslog = facilitynames[i].c_val;
+         return(0);
+      }
+   }
 }
 
 /* 

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: cfg_kwords.h,v 1.1.1.1 2000/03/28 17:19:48 maxk Exp $
+ * $Id: cfg_kwords.h,v 1.1.1.1.2.1 2001/06/10 22:48:38 maxk Exp $
  */ 
 
 extern int lineno;
@@ -55,6 +55,7 @@ struct kword cfg_keyword[] = {
    { "route", 	 K_ROUTE }, 
    { "keepalive",K_KALIVE }, 
    { "stat",	 K_STAT }, 
+   { "syslog",   K_SYSLOG },
    { NULL , 0 }
 };
 

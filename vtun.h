@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: vtun.h,v 1.7.2.3 2001/01/10 01:46:29 maxk Exp $
+ * $Id: vtun.h,v 1.7.2.4 2001/06/10 22:48:38 maxk Exp $
  */ 
 #ifndef _VTUN_H
 #define _VTUN_H
@@ -171,6 +171,7 @@ struct vtun_opts {
    char *svr_name;       /* Server's host name */
    int  svr_port;	 /* Server's port */
    int  svr_type;	 /* Server mode */
+   int  syslog; 	 /* Facility to log messages to syslog under */
 };
 #define VTUN_STAND_ALONE	0 
 #define VTUN_INETD		1	
