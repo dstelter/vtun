@@ -178,7 +178,7 @@ char *bf2cf(struct vtun_host *host)
 	*(ptr++) = 'K';
 
      if( host->flags & VTUN_ENCRYPT )
-	*(ptr++) = 'E';
+	ptr += sprintf(ptr,"E%d", host->cipher);
 
      strcat(ptr,">");
 
@@ -234,7 +234,11 @@ int cf2bf(char *str, struct vtun_host *host)
 		ptr = p;
 		break;
 	     case 'E':
+		if((s = strtol(ptr,&p,10)) == ERANGE || ptr == p) 
+		   return 0;
 		host->flags |= VTUN_ENCRYPT;
+		host->cipher = s; 
+		ptr = p;
 		break;
      	     case 'S':
 		if((s = strtol(ptr,&p,10)) == ERANGE || ptr == p) 
