@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: cfg_file.y,v 1.1.1.2.2.3 2000/09/21 18:40:26 maxk Exp $
+ * $Id: cfg_file.y,v 1.1.1.2.2.4 2001/01/10 01:46:29 maxk Exp $
  */ 
 
 #include "config.h"
@@ -211,12 +211,11 @@ host_option: '\n'
 			  else
 			     parse_host->flags &= ~VTUN_ENCRYPT;
 			}
-  | K_KALIVE NUM	{  
-			  if( $2 )
-			     parse_host->flags |= VTUN_KEEP_ALIVE;
-			  else
-			     parse_host->flags &= ~VTUN_KEEP_ALIVE;
+  | K_KALIVE 		{
+			  parse_host->flags &= ~VTUN_KEEP_ALIVE; 
 			}
+			keepalive	
+
   | K_STAT NUM		{
 			  if( $2 )
 			     parse_host->flags |= VTUN_STAT;
@@ -269,6 +268,24 @@ compress:
   			}
   | K_ERROR		{
 			  cfg_error("Unknown compression '%s'",$1);
+			  YYABORT;
+			} 
+  ;
+
+keepalive:  
+  NUM	 		{ 
+			  if( $1 )
+			     parse_host->flags |= VTUN_KEEP_ALIVE;
+			}
+  | DNUM		{
+			  if( yylval.dnum.num1 ){
+			     parse_host->flags |= VTUN_KEEP_ALIVE;
+			     parse_host->ka_interval = yylval.dnum.num1;
+		             parse_host->ka_failure  = yylval.dnum.num2;
+			  }
+  			}
+  | K_ERROR		{
+			  cfg_error("Unknown keepalive option '%s'",$1);
 			  YYABORT;
 			} 
   ;

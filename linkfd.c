@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: linkfd.c,v 1.4.2.5 2000/12/28 04:38:16 maxk Exp $
+ * $Id: linkfd.c,v 1.4.2.6 2001/01/10 01:46:29 maxk Exp $
  */
 
 #include "config.h"
@@ -213,7 +213,9 @@ int lfd_linker(void)
         FD_ZERO(&fdset);
 	FD_SET(fd1, &fdset);
 	FD_SET(fd2, &fdset);
- 	tv.tv_sec = 30; tv.tv_usec = 0;
+
+ 	tv.tv_sec  = lfd_host->ka_interval;
+	tv.tv_usec = 0;
 
 	if( (len = select(maxfd, &fdset, NULL, NULL, &tv)) < 0 ){
 	   if( errno != EAGAIN && errno != EINTR )
@@ -225,7 +227,7 @@ int lfd_linker(void)
 	if( !len ){
 	   /* We are idle, lets check connection */
 	   if( lfd_host->flags & VTUN_KEEP_ALIVE ){
-	      if( ++idle > 3 ){
+	      if( ++idle > lfd_host->ka_failure ){
 	         syslog(LOG_INFO,"Session %s network timeout", lfd_host->host);
 		 break;	
 	      }

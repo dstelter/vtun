@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: vtun.h,v 1.7.2.2 2000/09/21 18:40:26 maxk Exp $
+ * $Id: vtun.h,v 1.7.2.3 2001/01/10 01:46:29 maxk Exp $
  */ 
 #ifndef _VTUN_H
 #define _VTUN_H
@@ -99,6 +99,10 @@ struct vtun_host {
 
    /* Multiple connections */
    int  multi;
+
+   /* Keep Alive */
+   int ka_interval;
+   int ka_failure;
 
    /* Source address */
    struct vtun_addr src_addr;
