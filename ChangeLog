@@ -1,3 +1,8 @@
+ver 2.4b2:
+	 TCP driver fixes. Modules and frame handling optimizations.
+	 Configure options to disable LZO, ZLIB, OpenSSL and Shaper support.
+	 Cleanups. Documentation update.
+
 ver 2.4b1:
 	 Numerous stability fixes. TCP driver fixes.
 	 Improved TUN driver support for Solaris 8.

@@ -13,10 +13,10 @@ Required packages:
   - Lexical Analyzer (flex, lex)
   - YACC (yacc, bison, byacc)
   - Universal TUN/TAP driver 	http://vtun.sourceforge.net/tun
-  - Zlib compression library
   - OpenSSL encryption library 	http://www.openssl.org 
 
 Optional packages:
+  - Zlib compression library
   - LZO compression library 	http://wildsau.idv.uni-linz.ac.at/mfx/lzo.html
   - SOCKS library:
 	 Socks5 by NEC (recommended)	http://www.socks.nec.com 
