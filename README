@@ -17,7 +17,7 @@ Required packages:
 
 Optional packages:
   - Zlib compression library
-  - LZO compression library 	http://wildsau.idv.uni-linz.ac.at/mfx/lzo.html
+  - LZO compression library 	http://www.oberhumer.com/opensource/lzo
   - SOCKS library:
 	 Socks5 by NEC (recommended)	http://www.socks.nec.com 
 	 Dante Socks4/5 	http://www.inet.no/dante 

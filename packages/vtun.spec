@@ -1,5 +1,5 @@
 %define name	vtun
-%define version	2.5.4
+%define version	2.6
 %define release	1
 
 #this part NEEDS to be expanded
@@ -155,6 +155,9 @@ fi
 %endif
 
 %changelog
+* Tue Mar 18 2003 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.6-1
+- new release
+
 * Sat Aug 17 2002 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.5-5
 - fix GROUP for amanda's genhdlist and Michael Van Donselaar
 

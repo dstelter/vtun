@@ -1,5 +1,5 @@
 .\" Manual page for vtund.conf
-.\" $Id: vtund.conf.5,v 1.1.2.5 2001/12/29 18:14:04 bergolth Exp $
+.\" vtund.conf.5,v 1.1.2.5 2001/12/29 18:14:04 bergolth Exp
 .TH VTUND.CONF 5
 
 .SH NAME
@@ -57,6 +57,13 @@ By default, \fBvtund\fR(8) uses port 5000.
 
 .IP \fBtimeout\ \fIseconds\fR
 General timeout.
+
+.IP \fBpersist\fR\ \fByes\fR|\fBkeep\fR|\fBno\fR
+persist mode.  If \fByes\fR, the client will try to reconnect to the server
+after connection termination.  If \fBkeep\fR, the client will not remove
+and re-add the \fBtun\fIXX\fR or \fBtap\fIXX\fR device when reconnecting.
+If \fBno\fR, the client will exit (default).
+This option is ignored by the server.
 
 .IP \fBsyslog\fR\ \fBnumber\fR|\fBname\fR
 syslog facility specification, either numeric or name (from syslog (3)).
@@ -123,13 +130,6 @@ This option is ignored by the client.
 
 .IP \fBtimeout\ \fIsecounds\fR
 Connect timeout.
-
-.IP \fBpersist\fR\ \fByes\fR|\fBkeep\fR|\fBno\fR
-persist mode.  If \fByes\fR, the client will try to reconnect to the server
-after connection termination.  If \fBkeep\fR, the client will not remove
-and re-add the \fBtun\fIXX\fR or \fBtap\fIXX\fR device when reconnecting.
-If \fBno\fR, the client will exit (default).
-This option is ignored by the server.
 
 .IP \fBcompress\ \fImethod\fR[\fB:\fIlevel\fR]
 specifies compression method to use.  Compression \fImethod\fRs includes:
