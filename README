@@ -1,9 +1,9 @@
 VTun - Virtual Tunnel over TCP/IP network.
-Copyright (C) 1998-2000 Maxim Krasnyansky <max_mk@yahoo.com>
+Copyright (C) 1998-2004 Maxim Krasnyansky <max_mk@yahoo.com>
 
 This product includes software developed by the OpenSSL Project
 for use in the OpenSSL Toolkit. (http://www.openssl.org/).
-Copyright (c) 1998-2000 The OpenSSL Project.  All rights reserved.
+Copyright (c) 1998-2004 The OpenSSL Project.  All rights reserved.
 
 Compilation and Installation.
 
@@ -50,12 +50,12 @@ To compile and install run:
 Read manual page for 'vtund' and example of the config file for the 
 configuration and other details.
 
-VTun has the mailing list vtun@office.satix.net 
+VTun has the mailing list vtun-users@lists.sourceforge.net
 To receive information about mailing list and how to subscribe to it 
-send an e-mail to vtun-request@office.satix.net with the word 'help' in 
+send an e-mail to vtun-users-request@lists.sourceforge.net with the word 'help' in 
 the Subject. 
 
 If you have any suggestions, ideas, wishes send them to 
-vtun@office.satix.net
+vtun-users@lists.sourceforge.net
  
 Maxim Krasnyansky <max_mk@yahoo.com> 
