@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: auth.c,v 1.2.2.2 2000/12/24 18:57:40 maxk Exp $
+ * $Id: auth.c,v 1.2.2.3 2001/01/23 05:55:40 maxk Exp $
  */ 
 
 /*
@@ -210,19 +210,15 @@ int cf2bf(char *str, struct vtun_host *host)
 	     case 'C':
 		if((s = strtol(ptr,&p,10)) == ERANGE || ptr == p) 
 		   return 0;
-		if( s ){
-		   host->flags |= VTUN_ZLIB;
-		   host->zlevel = s; 
-		}
+		host->flags |= VTUN_ZLIB;
+		host->zlevel = s; 
 		ptr = p;
 		break;
 	     case 'L':
 		if((s = strtol(ptr,&p,10)) == ERANGE || ptr == p) 
 		   return 0;
-		if( s ){
-		   host->flags |= VTUN_LZO;
-		   host->zlevel = s; 
-		}
+		host->flags |= VTUN_LZO;
+		host->zlevel = s; 
 		ptr = p;
 		break;
 	     case 'E':

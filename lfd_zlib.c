@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_zlib.c,v 1.1.1.2.2.3 2000/12/24 18:57:40 maxk Exp $
+ * $Id: lfd_zlib.c,v 1.1.1.2.2.4 2001/01/23 05:55:40 maxk Exp $
  */ 
 
 /* ZLIB compression module */
@@ -47,6 +47,8 @@ static int zbuf_size = VTUN_FRAME_SIZE + 200;
  */  
 int zlib_alloc(struct vtun_host *host)
 {
+     int zlevel = host->zlevel ? host->zlevel : 1;
+
      zd.zalloc = (alloc_func)0;
      zd.zfree  = (free_func)0;
      zd.opaque = (voidpf)0;
@@ -54,7 +56,7 @@ int zlib_alloc(struct vtun_host *host)
      zi.zfree  = (free_func)0;
      zi.opaque = (voidpf)0;
     
-     if( deflateInit(&zd, host->zlevel ) != Z_OK ){
+     if( deflateInit(&zd, zlevel ) != Z_OK ){
 	syslog(LOG_ERR,"Can't initialize compressor");
 	return 1;
      }	
@@ -67,7 +69,7 @@ int zlib_alloc(struct vtun_host *host)
 	return 1;
      }
    
-     syslog(LOG_INFO,"ZLIB compression[level %d] initialized.", host->zlevel);
+     syslog(LOG_INFO,"ZLIB compression[level %d] initialized.", zlevel);
      return 0;
 }
 

@@ -125,6 +125,18 @@ VTun package contains:
    Fully documented config file.
    Several README files.
 
+1.23 Can I use vtun over SSH ?
+Yes, via the port forwarding feature of ssh.  Don't enable vtun's
+encryption as ssh does its own encryption.  Also, make sure to select
+the tcp protocol as SSH can forward tcp but not udp.  An example
+session might look something like this:
+
+home$ ssh -L 5000:localhost:5000 work.megacorp.com
+(authenticate if necessary)
+work$ vtund -s home_tunnel_config
+...
+home$ vtund home_tunnel_config localhost
+
 2. Error Messages
 2.1 Why do I see no vtund log and error messages ?
 On several Unices, FreeBSD for example, syslog doesn't log message 

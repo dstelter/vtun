@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_lzo.c,v 1.1.1.2.2.4 2000/12/24 18:57:40 maxk Exp $
+ * $Id: lfd_lzo.c,v 1.1.1.2.2.5 2001/01/23 05:55:40 maxk Exp $
  */ 
 
 /* LZO compression module */
@@ -52,9 +52,10 @@ int (*lzo1x_compress)(const lzo_byte *src, lzo_uint  src_len,
 
 int alloc_lzo(struct vtun_host *host)
 {
+     int zlevel = host->zlevel ? host->zlevel : 1;
      int mem;
 
-     switch( host->zlevel ) {
+     switch( zlevel ){
 	case 9:
 	   lzo1x_compress = lzo1x_999_compress;
            mem = LZO1X_999_MEM_COMPRESS;
@@ -78,7 +79,7 @@ int alloc_lzo(struct vtun_host *host)
 	return 1;
      }	
 
-     syslog(LOG_INFO, "LZO compression[level %d] initialized", host->zlevel);
+     syslog(LOG_INFO, "LZO compression[level %d] initialized", zlevel);
 
      return 0;
 }
