@@ -298,19 +298,11 @@ int run_cmd(void *d, void *opt)
 				WEXITSTATUS(st) );
 	   }
     	   if( cmd->flags & VTUN_CMD_DELAY ){
-#ifdef HAVE_NANOSLEEP
 	      struct timespec tm = { VTUN_DELAY_SEC, 0 };
 	      /* Small delay hack to sleep after pppd start.
 	       * Until I have no good solution for solving 
 	       * PPP + route problem  */
 	      nanosleep(&tm, NULL);
-#elif defined(HAVE_USLEEP)
-          usleep(VTUN_DELAY_SEC * 1000000);
-#elif defined(HAVE_SLEEP)
-          sleep(VTUN_DELAY_SEC);
-#else
-#error No sleep function available
-#endif
 	   }
 	   return 0;	 
      }
