@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_shaper.c,v 1.1.1.2.2.1 2000/12/24 18:57:40 maxk Exp $
+ * $Id: lfd_shaper.c,v 1.1.1.2.2.2 2002/04/25 09:19:50 bergolth Exp $
  */
 
 #include "config.h"
@@ -54,7 +54,7 @@ int shaper_init(struct vtun_host *host)
 
      bytes = 0;
      
-     syslog(LOG_INFO,"Traffic shaping(speed %dK) initialized.", host->spd_out);	
+     vtun_syslog(LOG_INFO,"Traffic shaping(speed %dK) initialized.", host->spd_out);	
      return 0;
 }
 
@@ -146,7 +146,7 @@ struct lfd_mod lfd_shaper = {
 
 int no_shaper(struct vtun_host *host)
 {
-     syslog(LOG_INFO, "Traffic shaping is not supported");
+     vtun_syslog(LOG_INFO, "Traffic shaping is not supported");
      return -1;
 }
 

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lock.c,v 1.1.1.1 2000/03/28 17:19:44 maxk Exp $
+ * $Id: lock.c,v 1.1.1.1.2.1 2002/04/25 09:19:50 bergolth Exp $
  */ 
 
 #include "config.h"
@@ -49,7 +49,7 @@ int create_lock(char * file)
   /* Create temp file */
   sprintf(tmp_file, "%s_%d_tmp\n", file, pid);
   if( (fd = open(tmp_file, O_WRONLY|O_CREAT|O_TRUNC, 0644)) < 0 ){
-     syslog(LOG_ERR, "Can't create temp lock file %s", file);
+     vtun_syslog(LOG_ERR, "Can't create temp lock file %s", file);
      return -1;
   }
 
@@ -61,7 +61,7 @@ int create_lock(char * file)
         ret = -1;
      }
   } else { 
-     syslog(LOG_ERR, "Can't write to %s", tmp_file);
+     vtun_syslog(LOG_ERR, "Can't write to %s", tmp_file);
      ret = -1;
   }
   close(fd);
@@ -91,7 +91,7 @@ pid_t read_lock(char * file)
   if( !pid || errno == ERANGE ){
      /* Broken lock file */
      if( unlink(file) < 0 )
-        syslog(LOG_ERR, "Unable to remove broken lock %s", file);
+        vtun_syslog(LOG_ERR, "Unable to remove broken lock %s", file);
      return -1;
   }
 
@@ -99,7 +99,7 @@ pid_t read_lock(char * file)
   if( kill(pid, 0) < 0 && errno == ESRCH ){
      /* Process is dead. Remove stale lock. */
      if( unlink(file) < 0 )
-        syslog(LOG_ERR, "Unable to remove stale lock %s", file);
+        vtun_syslog(LOG_ERR, "Unable to remove stale lock %s", file);
      return -1;
   }
 
@@ -122,9 +122,9 @@ int lock_host(struct vtun_host * host)
      /* Old process is alive */
      switch( host->multi ){
 	case VTUN_MULTI_KILL:
-           syslog(LOG_INFO, "Killing old connection (process %d)", pid);
+           vtun_syslog(LOG_INFO, "Killing old connection (process %d)", pid);
            if( kill(pid, SIGTERM) < 0 && errno != ESRCH ){
-              syslog(LOG_ERR, "Can't kill process %d. %s",pid,strerror(errno));
+              vtun_syslog(LOG_ERR, "Can't kill process %d. %s",pid,strerror(errno));
               return -1;
            }
            /* Give it a time(up to 5 secs) to terminate */
@@ -135,10 +135,10 @@ int lock_host(struct vtun_host * host)
 
 	   /* Make sure it's dead */		 
            if( !kill(pid, SIGKILL) ){
-              syslog(LOG_ERR, "Process %d ignored TERM, killed with KILL", pid);
+              vtun_syslog(LOG_ERR, "Process %d ignored TERM, killed with KILL", pid);
    	      /* Remove lock */
               if( unlink(lock_file) < 0 )
-                 syslog(LOG_ERR, "Unable to remove lock %s", lock_file);
+                 vtun_syslog(LOG_ERR, "Unable to remove lock %s", lock_file);
 	   }
 
 	   break;
@@ -159,5 +159,5 @@ void unlock_host(struct vtun_host *host)
   sprintf(lock_file, "%s/%s", VTUN_LOCK_DIR, host->host);
 
   if( unlink(lock_file) < 0 )
-     syslog(LOG_ERR, "Unable to remove lock %s", lock_file);
+     vtun_syslog(LOG_ERR, "Unable to remove lock %s", lock_file);
 }

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lib.c,v 1.1.1.2.2.5 2001/09/06 19:43:41 maxk Exp $
+ * $Id: lib.c,v 1.1.1.2.2.6 2002/04/25 09:19:50 bergolth Exp $
  */ 
 
 #include "config.h"
@@ -40,6 +40,7 @@
 #include "lib.h"
 
 volatile sig_atomic_t __io_canceled = 0;
+volatile sig_atomic_t __in_syslog = 0;
 
 #ifndef HAVE_SETPROC_TITLE
 /* Functions to manipulate with program title */
@@ -286,13 +287,13 @@ int run_cmd(void *d, void *opt)
 	case 0:
 	   break;
 	case -1:
-	   syslog(LOG_ERR,"Couldn't fork()");
+	   vtun_syslog(LOG_ERR,"Couldn't fork()");
 	   return 0;
 	default:
     	   if( cmd->flags & VTUN_CMD_WAIT ){
 	      /* Wait for termination */
 	      if( waitpid(pid,&st,0) > 0 && (WIFEXITED(st) && WEXITSTATUS(st)) )
-		 syslog(LOG_INFO,"Command [%s %.20s] error %d", 
+		 vtun_syslog(LOG_INFO,"Command [%s %.20s] error %d", 
 				cmd->prog ? cmd->prog : "sh",
 				cmd->args ? cmd->args : "", 
 				WEXITSTATUS(st) );
@@ -321,7 +322,7 @@ int run_cmd(void *d, void *opt)
      }
      execv(cmd->prog, argv);
 
-     syslog(LOG_ERR,"Couldn't exec program %s", cmd->prog);
+     vtun_syslog(LOG_ERR,"Couldn't exec program %s", cmd->prog);
      exit(1);
 }
 
@@ -341,4 +342,27 @@ void free_sopt( struct vtun_sopt *opt )
 	free(opt->raddr);
         opt->raddr = NULL;
      }
+}
+
+void vtun_openlog (char *ident, int option, int facility)
+{
+   openlog(ident, option, facility);
+   __in_syslog = 0;
+}
+
+void vtun_syslog (int priority, char *format, ...)
+{
+   char buf[255];
+   va_list ap;
+
+   if(! __in_syslog) {
+      __in_syslog = 1;
+    
+      va_start(ap, format);
+      vsnprintf(buf, sizeof(buf)-1, format, ap);
+      syslog(priority, "%s", buf);
+      va_end(ap);
+
+      __in_syslog = 0;
+   }
 }

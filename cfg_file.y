@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: cfg_file.y,v 1.1.1.2.2.11 2001/12/29 17:01:01 bergolth Exp $
+ * $Id: cfg_file.y,v 1.1.1.2.2.12 2002/04/25 09:19:50 bergolth Exp $
  */ 
 
 #include "config.h"
@@ -32,6 +32,7 @@
 
 #include "compat.h"
 #include "vtun.h"
+#include "lib.h"
 
 int lineno = 1;
 
@@ -448,7 +449,7 @@ prog_option:
 
 int yyerror(char *s) 
 {
-   syslog(LOG_ERR, "%s line %d\n", s, lineno);
+   vtun_syslog(LOG_ERR, "%s line %d\n", s, lineno);
    return 0;
 }
 
@@ -602,14 +603,14 @@ int read_config(char *file)
 
    if( cfg_loaded ){
       free_host_list();
-      syslog(LOG_INFO,"Reloading configuration file");
+      vtun_syslog(LOG_INFO,"Reloading configuration file");
    }	 
    cfg_loaded = 1;
 
    llist_init(&host_list);
 
    if( !(yyin = fopen(file,"r")) ){
-      syslog(LOG_ERR,"Can not open %s", file);
+      vtun_syslog(LOG_ERR,"Can not open %s", file);
       return -1;      
    }
 

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: main.c,v 1.1.1.2.2.6 2001/12/29 17:01:01 bergolth Exp $
+ * $Id: main.c,v 1.1.1.2.2.7 2002/04/25 09:19:50 bergolth Exp $
  */ 
 #include "config.h"
 
@@ -84,7 +84,7 @@ int main(int argc, char *argv[], char *env[])
      default_host.loc_fd = default_host.rmt_fd = -1;
 
      /* Start logging to syslog and stderr */
-     openlog("vtund", LOG_PID | LOG_NDELAY | LOG_PERROR, LOG_DAEMON);
+     vtun_openlog("vtund", LOG_PID | LOG_NDELAY | LOG_PERROR, LOG_DAEMON);
 
      while( (opt=getopt(argc,argv,"isf:P:t:np")) != EOF ){
 	switch(opt){
@@ -129,7 +129,7 @@ int main(int argc, char *argv[], char *env[])
 	hst = argv[optind++];
 
         if( !(host = find_host(hst)) ){	
-	   syslog(LOG_ERR,"Host %s not found in %s", hst, vtun.cfg_file);
+	   vtun_syslog(LOG_ERR,"Host %s not found in %s", hst, vtun.cfg_file);
 	   exit(1);
         }
 
@@ -203,7 +203,7 @@ void write_pid(void)
      FILE *f;
 
      if( !(f=fopen(VTUN_PID_FILE,"w")) ){
-        syslog(LOG_ERR,"Can't write PID file");
+        vtun_syslog(LOG_ERR,"Can't write PID file");
         return;
      }
 
@@ -214,7 +214,7 @@ void write_pid(void)
 void reread_config(int sig)
 {
      if( !read_config(vtun.cfg_file) ){
-	syslog(LOG_ERR,"No hosts defined");
+	vtun_syslog(LOG_ERR,"No hosts defined");
 	exit(1);
      }
 }

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_encrypt.c,v 1.2.2.5 2001/06/07 15:35:12 maxk Exp $
+ * $Id: lfd_encrypt.c,v 1.2.2.6 2002/04/25 09:19:50 bergolth Exp $
  */ 
 
 /*
@@ -60,13 +60,13 @@ char * enc_buf;
 int alloc_encrypt(struct vtun_host *host)
 {
    if( !(enc_buf = lfd_alloc(ENC_BUF_SIZE)) ){
-      syslog(LOG_ERR,"Can't allocate buffer for encryptor");
+      vtun_syslog(LOG_ERR,"Can't allocate buffer for encryptor");
       return -1;
    }
 
    BF_set_key(&key, ENC_KEY_SIZE, MD5(host->passwd,strlen(host->passwd),NULL));
 
-   syslog(LOG_INFO, "BlowFish encryption initialized");
+   vtun_syslog(LOG_INFO, "BlowFish encryption initialized");
    return 0;
 }
 
@@ -107,7 +107,7 @@ int decrypt_buf(int len, char *in, char **out)
 
    p = *in;
    if (p < 1 || p > 8) {
-      syslog(LOG_INFO, "decrypt_buf: bad pad length");
+      vtun_syslog(LOG_INFO, "decrypt_buf: bad pad length");
       return 0;
    }
 
@@ -135,7 +135,7 @@ struct lfd_mod lfd_encrypt = {
 
 int no_encrypt(struct vtun_host *host)
 {
-     syslog(LOG_INFO, "Encryption is not supported");
+     vtun_syslog(LOG_INFO, "Encryption is not supported");
      return -1;
 }
 
