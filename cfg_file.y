@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: cfg_file.y,v 1.1.1.2.2.7 2001/06/10 22:48:38 maxk Exp $
+ * $Id: cfg_file.y,v 1.1.1.2.2.8 2001/07/26 01:17:47 maxk Exp $
  */ 
 
 #include "config.h"
@@ -201,7 +201,7 @@ syslog_opt:
                         }
 
   | K_ERROR 		{
-   			  cfg_error("Unknown keepalive option '%s'",$1);
+   			  cfg_error("Unknown syslog option '%s'",$1);
   			  YYABORT;
 			}
   ;
