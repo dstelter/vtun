@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: main.c,v 1.1.1.2.2.1 2000/09/21 18:40:26 maxk Exp $
+ * $Id: main.c,v 1.1.1.2.2.2 2000/12/19 17:16:15 maxk Exp $
  */ 
 #include "config.h"
 
@@ -210,6 +210,7 @@ void reread_config(int sig)
 
 void usage(void)
 {
+     printf("VTun ver %s\n", VTUN_VER);
      printf("Usage: \n");
      printf("  Server:\n");
      printf("\tvtund <-s> [-f file] [-P port]\n");
