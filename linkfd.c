@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: linkfd.c,v 1.4.2.6 2001/01/10 01:46:29 maxk Exp $
+ * $Id: linkfd.c,v 1.4.2.7 2001/05/16 20:51:21 bergolth Exp $
  */
 
 #include "config.h"
@@ -162,6 +162,12 @@ static void sig_term(int sig)
 {
      syslog(LOG_INFO,"Closing connection");
      linker_term = 1;
+}
+
+static void sig_hup(int sig)
+{
+     syslog(LOG_INFO,"Reestablishing connection");
+     linker_term = 2;
 }
 
 /* Statistic dump */
@@ -313,7 +319,7 @@ int lfd_linker(void)
 /* Link remote and local file descriptors */ 
 int linkfd(struct vtun_host *host)
 {
-     struct sigaction sa, sat;
+     struct sigaction sa, sa_oldterm, sa_oldhup;
      int old_prio;
 
      lfd_host = host;
@@ -339,7 +345,9 @@ int linkfd(struct vtun_host *host)
 
      memset(&sa, 0, sizeof(sa));
      sa.sa_handler=sig_term;
-     sigaction(SIGTERM,&sa,&sat);
+     sigaction(SIGTERM,&sa,&sa_oldterm);
+     sa.sa_handler=sig_hup;
+     sigaction(SIGHUP,&sa,&sa_oldhup);
 
      /* Initialize statstic dumps */
      if( host->flags & VTUN_STAT ){
@@ -367,7 +375,8 @@ int linkfd(struct vtun_host *host)
 
      lfd_free_mod();
      
-     sigaction(SIGTERM,&sat,NULL);
+     sigaction(SIGTERM,&sa_oldterm,NULL);
+     sigaction(SIGHUP,&sa_oldhup,NULL);
 
      setpriority(PRIO_PROCESS,0,old_prio);
 

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: client.c,v 1.5.2.3 2000/09/21 18:40:26 maxk Exp $
+ * $Id: client.c,v 1.5.2.4 2001/05/16 20:51:21 bergolth Exp $
  */ 
 
 #include "config.h"
@@ -74,8 +74,8 @@ void client(struct vtun_host *host)
      sigaction(SIGTERM,&sa,NULL);
  
      client_term = 0; reconnect = 0;
-     while( !client_term ){ 
-	if( reconnect ){
+     while( (!client_term) || (client_term == 2) ){
+	if( reconnect && (client_term != 2) ){
 	   if( vtun.persist || (host->flags & VTUN_PERSIST) ){
 	      /* Persist mode. Sleep and reconnect. */
 	      sleep(5);
@@ -123,7 +123,7 @@ void client(struct vtun_host *host)
         host->spd_in = host->spd_out = 0;
         host->flags &= VTUN_CLNT_MASK;
 
-	set_title("connecting to %s", vtun.svr_name);
+	set_title("%s connecting to %s", host->host, vtun.svr_name);
         syslog(LOG_INFO,"Connecting to %s", vtun.svr_name);
 
         if( connect_t(s,(struct sockaddr *) &svr_addr, host->timeout) ){
