@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_encrypt.c,v 1.2.2.4 2000/12/24 18:57:40 maxk Exp $
+ * $Id: lfd_encrypt.c,v 1.2.2.5 2001/06/07 15:35:12 maxk Exp $
  */ 
 
 /*
@@ -73,7 +73,6 @@ int alloc_encrypt(struct vtun_host *host)
 int free_encrypt()
 {
    lfd_free(enc_buf); enc_buf = NULL;
-
    return 0;
 }
 
@@ -92,7 +91,7 @@ int encrypt_buf(int len, char *in, char **out)
    out_ptr += 8; in_ptr += p; 
    len = len - p;
 
-   for(p=0; p < len; p += 8 )
+   for (p=0; p < len; p += 8)
       BF_ecb_encrypt(in_ptr + p,  out_ptr + p, &key, BF_ENCRYPT);
 
    *out = enc_buf;
@@ -103,10 +102,15 @@ int decrypt_buf(int len, char *in, char **out)
 {
    register int p;
 
-   for(p = 0; p < len; p += 8)
+   for (p = 0; p < len; p += 8)
       BF_ecb_encrypt(in + p, in + p, &key, BF_DECRYPT);
 
    p = *in;
+   if (p < 1 || p > 8) {
+      syslog(LOG_INFO, "decrypt_buf: bad pad length");
+      return 0;
+   }
+
    *out = in + p;
 
    return len - p;

@@ -17,12 +17,15 @@
  */
 
 /*
- * $Id: auth.c,v 1.2.2.3 2001/01/23 05:55:40 maxk Exp $
+ * $Id: auth.c,v 1.2.2.4 2001/06/07 15:35:12 maxk Exp $
  */ 
 
 /*
  * Challenge based authentication. 
- * Thanx to Chris Todd<christ@insynq.com> for the good idea.   
+ * Thanx to Chris Todd<christ@insynq.com> for the good idea.
+ *
+ * Jim Yonan, 05/24/2001
+ * 	gen_chal rewrite to use better random number generator 
  */ 
 
 #include "config.h"
@@ -60,6 +63,12 @@
 
 #include <md5.h>
 #include <blowfish.h>
+#include <rand.h>
+
+void gen_chal(char *buf)
+{
+   RAND_bytes(buf, VTUN_CHAL_SIZE);
+}
 
 void encrypt_chal(char *chal, char *pwd)
 { 
@@ -99,10 +108,7 @@ void inline decrypt_chal(char *chal, char *pwd)
    encrypt_chal(chal, pwd);
 }
 
-#endif /* HAVE_SSL */
-
-/* Generate PSEUDO random challenge key. 
- * FIXME. Should be rewritten to use better algorithm */
+/* Generate PSEUDO random challenge key. */
 void gen_chal(char *buf)
 {
    register int i;
@@ -112,6 +118,7 @@ void gen_chal(char *buf)
    for(i=0; i < VTUN_CHAL_SIZE; i++)
       buf[i] = (unsigned int)(255.0 * rand()/RAND_MAX);
 }
+#endif /* HAVE_SSL */
 
 /* 
  * Functions to convert binary flags to character string.
