@@ -2058,7 +2058,7 @@ echo "configure:2057: checking for SSL Library and Header files ... " >&5
     echo $ac_n "checking "for md5.h blowfish.h"""... $ac_c" 1>&6
 echo "configure:2060: checking "for md5.h blowfish.h"" >&5 
     ac_hdr_found=no
-    for p in $SSL_HDR_DIR /usr/include/ssl /usr/include/openssl /usr/include /usr/local/include; do
+    for p in $SSL_HDR_DIR /usr/include/ssl /usr/include/openssl /usr/include /usr/local/include /usr/local/ssl/include; do
 	
     ac_file_found=yes
     for f in md5.h blowfish.h; do

@@ -2,7 +2,7 @@ dnl
 dnl VTun - Virtual Tunnel over TCP/IP network.
 dnl Copyright (C) 1998-2000  Maxim Krasnyansky <max_mk@yahoo.com>
 dnl
-dnl $Id: configure.in,v 1.10.2.2 2000/12/24 18:57:40 maxk Exp $
+dnl $Id: configure.in,v 1.10.2.3 2000/12/28 05:35:10 maxk Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script.
 dnl
@@ -134,7 +134,7 @@ if test "$SSL" = "yes"; then
    AC_MSG_RESULT()
    AC_CHECKING( for SSL Library and Header files ... )
    AC_SEARCH_HEADERS(md5.h blowfish.h,
-	$SSL_HDR_DIR /usr/include/ssl /usr/include/openssl /usr/include /usr/local/include,
+	$SSL_HDR_DIR /usr/include/ssl /usr/include/openssl /usr/include /usr/local/include /usr/local/ssl/include,
 	AC_CHECK_LIB(crypto, BF_set_key,
 	    [
 	       LIBS="$LIBS -lcrypto"
