@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: cfg_file.y,v 1.1.1.2.2.8 2001/07/26 01:17:47 maxk Exp $
+ * $Id: cfg_file.y,v 1.1.1.2.2.9 2001/08/21 21:31:37 maxk Exp $
  */ 
 
 #include "config.h"
@@ -74,7 +74,7 @@ int yyerror(char *s);
 %token K_PASSWD K_PROG K_PPP K_SPEED K_IFCFG K_FWALL K_ROUTE K_DEVICE 
 %token K_MULTI K_SRCADDR K_IFACE K_ADDR
 %token K_TYPE K_PROT K_COMPRESS K_ENCRYPT K_KALIVE K_STAT
-%token K_UP K_DOWN K_SYSLOG
+%token K_UP K_DOWN K_SYSLOG K_IPROUTE
 
 %token <str> K_HOST K_ERROR
 %token <str> WORD PATH STRING
@@ -173,6 +173,11 @@ option:  '\n'
   | K_FWALL PATH 	{   
 			  free(vtun.fwall);  
 			  vtun.fwall = strdup($2); 	
+			}
+
+  | K_IPROUTE PATH 	{   
+			  free(vtun.iproute);  
+			  vtun.iproute = strdup($2); 	
 			}
 
   | K_SYSLOG  syslog_opt
@@ -415,6 +420,11 @@ command_option: '\n'
 
   | K_FWALL STRING 	{   
 			  add_cmd(parse_cmds, strdup(vtun.fwall),strdup($2),
+					VTUN_CMD_WAIT);
+			}
+
+  | K_IPROUTE STRING 	{   
+			  add_cmd(parse_cmds, strdup(vtun.iproute),strdup($2),
 					VTUN_CMD_WAIT);
 			}
 

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: vtun.h,v 1.7.2.4 2001/06/10 22:48:38 maxk Exp $
+ * $Id: vtun.h,v 1.7.2.5 2001/08/21 21:31:37 maxk Exp $
  */ 
 #ifndef _VTUN_H
 #define _VTUN_H
@@ -167,6 +167,7 @@ struct vtun_opts {
    char *ifcfg;		 /* Command to configure net devices */
    char *route;		 /* Command to configure routing */
    char *fwall; 	 /* Command to configure FireWall */
+   char *iproute;	 /* iproute command */
 
    char *svr_name;       /* Server's host name */
    int  svr_port;	 /* Server's port */

@@ -1,5 +1,5 @@
 .\" Manual page for vtund.conf
-.\" $Id: vtund.conf.5,v 1.1.2.3 2001/06/10 22:48:38 maxk Exp $
+.\" $Id: vtund.conf.5,v 1.1.2.4 2001/08/21 21:31:37 maxk Exp $
 .TH VTUND.CONF 5
 
 .SH NAME
@@ -69,6 +69,9 @@ path to \fBifconfig\fR(8) program.  Can be used in session sections.
 
 .IP \fBroute\ \fIpath\fR
 path to \fBroute\fR(8) program.  Can be used in session sections.
+
+.IP \fBip\ \fIpath\fR
+path to \fBiproute\fR(8) program.  Can be used in session sections.
 
 .IP \fBfirewall\ \fIpath\fR
 program for the firewall setup.
@@ -228,6 +231,8 @@ All special character described above are valid in \fIarguments\fR here.
 run program specified by \fBifconfig\fR statement in \fBoptions\fR section.
 .IP \fBroute\ \fIarguments\fR
 run program specified by \fBroute\fR statement in \fBoptions\fR section.
+.IP \fBip\ \fIarguments\fR
+run program specified by \fBip\fR statement in \fBoptions\fR section.
 .IP \fBfirewall\ \fIarguments\fR
 run program specified by \fBfirewall\fR statement in \fBoptions\fR section.
 .RE

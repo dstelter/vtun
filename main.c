@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: main.c,v 1.1.1.2.2.4 2001/06/10 22:48:38 maxk Exp $
+ * $Id: main.c,v 1.1.1.2.2.5 2001/08/21 21:31:37 maxk Exp $
  */ 
 #include "config.h"
 
@@ -67,6 +67,7 @@ int main(int argc, char *argv[], char *env[])
      vtun.ifcfg = strdup("/sbin/ifconfig");
      vtun.route = strdup("/sbin/route");
      vtun.fwall = strdup("/sbin/ipchains");	
+     vtun.iproute = strdup("/sbin/ip");	
 
      vtun.svr_name = NULL;
      vtun.svr_port = -1;
