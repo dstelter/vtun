@@ -50,6 +50,9 @@
 #include "lib.h"
 #include "driver.h"
 
+/* used by lfd_encrypt */
+int send_a_packet = 0;
+
 /* Host we are working with. 
  * Used by signal handlers that's why it is global. 
  */
@@ -202,7 +205,7 @@ int lfd_linker(void)
      struct timeval tv;
      char *buf, *out;
      fd_set fdset;
-     int maxfd, idle = 0;
+     int maxfd, idle = 0, tmplen;
 
      if( !(buf = lfd_alloc(VTUN_FRAME_SIZE + VTUN_FRAME_OVERHEAD)) ){
 	vtun_syslog(LOG_ERR,"Can't allocate buffer for the linker"); 
@@ -231,8 +234,29 @@ int lfd_linker(void)
 	   else
 	      continue;
 	} 
-	
+	if (send_a_packet)
+        {
+           send_a_packet = 0;
+           tmplen = 1;
+	   lfd_host->stat.byte_out += tmplen; 
+	   if( (tmplen=lfd_run_down(tmplen,buf,&out)) == -1 )
+	      break;
+	   if( tmplen && proto_write(fd1, out, tmplen) < 0 )
+	      break;
+	   lfd_host->stat.comp_out += tmplen; 
+        }
 	if( !len ){
+           if (send_a_packet)
+           {
+              send_a_packet = 0;
+              tmplen = 1;
+	      lfd_host->stat.byte_out += tmplen; 
+   	      if( (tmplen=lfd_run_down(tmplen,buf,&out)) == -1 )
+	         break;
+	      if( tmplen && proto_write(fd1, out, tmplen) < 0 )
+	         break;
+	      lfd_host->stat.comp_out += tmplen; 
+           }
 	   /* We are idle, lets check connection */
 	   if( lfd_host->flags & VTUN_KEEP_ALIVE ){
 	      if( ++idle > lfd_host->ka_failure ){
