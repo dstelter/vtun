@@ -1,3 +1,7 @@
+ver 2.4:
+	 Configurable keep-alive. Fix for 0 compression level.
+	 RPM package and documentation update.
+
 ver 2.4b2:
 	 TCP driver fixes. Modules and frame handling optimizations.
 	 Configure options to disable LZO, ZLIB, OpenSSL and Shaper support.
