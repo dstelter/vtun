@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: auth.c,v 1.2.2.5 2001/09/06 19:43:41 maxk Exp $
+ * auth.c,v 1.2.2.5 2001/09/06 19:43:41 maxk Exp
  */ 
 
 /*
@@ -61,9 +61,9 @@
 /* Encryption and Decryption of the challenge key */
 #ifdef HAVE_SSL
 
-#include <md5.h>
-#include <blowfish.h>
-#include <rand.h>
+#include <openssl/md5.h>
+#include <openssl/blowfish.h>
+#include <openssl/rand.h>
 
 void gen_chal(char *buf)
 {

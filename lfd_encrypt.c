@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_encrypt.c,v 1.2.2.6 2002/04/25 09:19:50 bergolth Exp $
+ * lfd_encrypt.c,v 1.2.2.6 2002/04/25 09:19:50 bergolth Exp
  */ 
 
 /*
@@ -48,8 +48,8 @@
 
 #ifdef HAVE_SSL
 
-#include <md5.h>
-#include <blowfish.h>
+#include <openssl/md5.h>
+#include <openssl/blowfish.h>
 
 #define ENC_BUF_SIZE VTUN_FRAME_SIZE + 16 
 #define ENC_KEY_SIZE 16
