@@ -25,11 +25,13 @@ Optional packages:
 To configure VTun run:
   ./configure 
 Optional support:
-  --enable-lzo  	compile with LZO compression support
+  --disable-lzo  	compile without LZO compression support
+  --disable-zlib  	compile without ZLIB compression support
+  --disable-shaper  	compile without Traffic shaping support
   --enable-socks 	compile with SOCKS support
 
 Configure automatically searches for all required library and header files. 
-However you might need to specify location of the files that could not be 
+However you might need to specify location of the files which could not be 
 found in default location:
   SSL(Crypto) library:
   --with-ssl-lib=/path/to/library (libcrypto.a) 

@@ -17,8 +17,10 @@
  */
 
 /*
- * $Id: lfd_zlib.c,v 1.1.1.2.2.2 2000/12/19 17:10:07 maxk Exp $
+ * $Id: lfd_zlib.c,v 1.1.1.2.2.3 2000/12/24 18:57:40 maxk Exp $
  */ 
+
+/* ZLIB compression module */
 
 #include "config.h"
 
@@ -27,15 +29,13 @@
 #include <stdlib.h>
 #include <syslog.h>
 
-#ifdef HAVE_ZLIB
-#include <zlib.h>
-#endif
-
 #include "vtun.h"
 #include "linkfd.h"
 #include "lib.h"
 
-/* ZLIB compression module */
+#ifdef HAVE_ZLIB
+
+#include <zlib.h>
 
 static z_stream zi, zd; 
 static char *zbuf;
@@ -167,5 +167,21 @@ struct lfd_mod lfd_zlib = {
      zlib_decomp,
      NULL,
      zlib_free,
-     NULL,NULL
+     NULL,
+     NULL
 };
+
+#else  /* HAVE_ZLIB */
+
+int no_zlib(struct vtun_host *host)
+{
+     syslog(LOG_INFO, "ZLIB compression is not supported");
+     return -1;
+}
+
+struct lfd_mod lfd_zlib = {
+     "ZLIB",
+     no_zlib, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+};
+
+#endif /* HAVE_ZLIB */

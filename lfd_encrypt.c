@@ -1,4 +1,3 @@
-
 /*  
     VTun - Virtual Tunnel over TCP/IP network.
 
@@ -18,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_encrypt.c,v 1.2.2.3 2000/12/19 17:10:07 maxk Exp $
+ * $Id: lfd_encrypt.c,v 1.2.2.4 2000/12/24 18:57:40 maxk Exp $
  */ 
 
 /*
@@ -34,6 +33,8 @@
  * several improvements and modifications by me.  
  */
 
+#include "config.h"
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -41,12 +42,14 @@
 #include <strings.h>
 #include <string.h>
 
-#include <md5.h>
-#include <blowfish.h>
-
 #include "vtun.h"
 #include "linkfd.h"
 #include "lib.h"
+
+#ifdef HAVE_SSL
+
+#include <md5.h>
+#include <blowfish.h>
 
 #define ENC_BUF_SIZE VTUN_FRAME_SIZE + 16 
 #define ENC_KEY_SIZE 16
@@ -120,5 +123,21 @@ struct lfd_mod lfd_encrypt = {
      decrypt_buf,
      NULL,
      free_encrypt,
-     NULL,NULL
+     NULL,
+     NULL
 };
+
+#else  /* HAVE_SSL */
+
+int no_encrypt(struct vtun_host *host)
+{
+     syslog(LOG_INFO, "Encryption is not supported");
+     return -1;
+}
+
+struct lfd_mod lfd_encrypt = {
+     "Encryptor",
+     no_encrypt, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+};
+
+#endif /* HAVE_SSL */

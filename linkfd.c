@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: linkfd.c,v 1.4.2.3 2000/12/19 17:10:07 maxk Exp $
+ * $Id: linkfd.c,v 1.4.2.4 2000/12/24 18:57:40 maxk Exp $
  */
 
 #include "config.h"
@@ -209,6 +209,8 @@ int lfd_linker(void)
 	syslog(LOG_ERR,"Can't allocate buffer for the linker"); 
         return 0; 
      }
+
+     proto_write(fd1, buf, VTUN_ECHO_REQ);
 
      maxfd = (fd1 > fd2 ? fd1 : fd2) + 1;
 

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: auth.c,v 1.2.2.1 2000/09/21 18:40:26 maxk Exp $
+ * $Id: auth.c,v 1.2.2.2 2000/12/24 18:57:40 maxk Exp $
  */ 
 
 /*
@@ -50,13 +50,68 @@
 #include <arpa/inet.h>
 #endif
 
-#include <md5.h>
-#include <blowfish.h>
-
 #include "vtun.h"
 #include "lib.h"
 #include "lock.h"
 #include "auth.h"
+
+/* Encryption and Decryption of the challenge key */
+#ifdef HAVE_SSL
+
+#include <md5.h>
+#include <blowfish.h>
+
+void encrypt_chal(char *chal, char *pwd)
+{ 
+   register int i;
+   BF_KEY key;
+
+   BF_set_key(&key, 16, MD5(pwd,strlen(pwd),NULL));
+
+   for(i=0; i < VTUN_CHAL_SIZE; i += 8 )
+      BF_ecb_encrypt(chal + i,  chal + i, &key, BF_ENCRYPT);
+}
+
+void decrypt_chal(char *chal, char *pwd)
+{ 
+   register int i;
+   BF_KEY key;
+
+   BF_set_key(&key, 16, MD5(pwd,strlen(pwd),NULL));
+
+   for(i=0; i < VTUN_CHAL_SIZE; i += 8 )
+      BF_ecb_encrypt(chal + i,  chal + i, &key, BF_DECRYPT);
+}
+
+#else /* HAVE_SSL */
+
+void encrypt_chal(char *chal, char *pwd)
+{ 
+   char * xor_msk = pwd;
+   register int i, xor_len = strlen(xor_msk);
+
+   for(i=0; i < VTUN_CHAL_SIZE; i++)
+      chal[i] ^= xor_msk[i%xor_len];
+}
+
+void inline decrypt_chal(char *chal, char *pwd)
+{ 
+   encrypt_chal(chal, pwd);
+}
+
+#endif /* HAVE_SSL */
+
+/* Generate PSEUDO random challenge key. 
+ * FIXME. Should be rewritten to use better algorithm */
+void gen_chal(char *buf)
+{
+   register int i;
+ 
+   srand(time(NULL));
+
+   for(i=0; i < VTUN_CHAL_SIZE; i++)
+      buf[i] = (unsigned int)(255.0 * rand()/RAND_MAX);
+}
 
 /* 
  * Functions to convert binary flags to character string.
@@ -233,41 +288,6 @@ int cs2cl(char *str, char *chal)
 
      return 1;
 }   
-
-/* Generate PSEUDO random challenge key. 
- * FIXME. Should be rewritten to use better algorithm */
-void gen_chal(char *buf)
-{
-   register int i;
- 
-   srand(time(NULL));
-
-   for(i=0; i<VTUN_CHAL_SIZE; i++)
-      buf[i] = (unsigned int)(255.0 * rand()/RAND_MAX);
-}
-
-/* Encrypt and Decrypt challenge key */
-void encrypt_chal(char *chal, char *pwd)
-{ 
-   register int i;
-   BF_KEY key;
-
-   BF_set_key(&key, 16, MD5(pwd,strlen(pwd),NULL));
-
-   for(i=0; i < VTUN_CHAL_SIZE; i += 8 )
-      BF_ecb_encrypt(chal + i,  chal + i, &key, BF_ENCRYPT);
-}
-
-void decrypt_chal(char *chal, char *pwd)
-{ 
-   register int i;
-   BF_KEY key;
-
-   BF_set_key(&key, 16, MD5(pwd,strlen(pwd),NULL));
-
-   for(i=0; i < VTUN_CHAL_SIZE; i += 8 )
-      BF_ecb_encrypt(chal + i,  chal + i, &key, BF_DECRYPT);
-}
 
 /* Authentication (Server side) */
 struct vtun_host * auth_server(int fd)
