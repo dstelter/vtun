@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: linkfd.c,v 1.4.2.1 2000/09/14 14:57:20 maxk Exp $
+ * $Id: linkfd.c,v 1.4.2.2 2000/11/21 07:43:58 maxk Exp $
  */
 
 #include "config.h"
@@ -247,7 +247,7 @@ int lfd_linker(void)
          * the local device (fd2) */
 	if( FD_ISSET(fd1, &fdset) && lfd_check_up() ){
 	   idle = 0; 
-	   if( (len=proto_read(fd1,buf)) <= 0 )
+	   if( (len=proto_read(fd1, buf)) <= 0 )
 	      break;
 
 	   /* Handle frame flags */
