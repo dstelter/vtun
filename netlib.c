@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: netlib.c,v 1.7.2.1 2000/07/24 01:58:19 maxk Exp $
+ * $Id: netlib.c,v 1.7.2.2 2000/09/21 16:50:33 maxk Exp $
  */ 
 
 #include "config.h"
@@ -98,7 +98,7 @@ int connect_t(int s, struct sockaddr *svr, time_t timeout)
 
      FD_ZERO(&fdset);
      FD_SET(s,&fdset);
-     if( select(s+1,NULL,&fdset,NULL,&tv) > 0 ){
+     if( select(s+1,NULL,&fdset,NULL,timeout?&tv:NULL) > 0 ){
         int l=sizeof(errno);	 
         errno=0;
         getsockopt(s,SOL_SOCKET,SO_ERROR,&errno,&l);
