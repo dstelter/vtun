@@ -8,7 +8,7 @@
 
 # define variables here for older RPM versions.
 %define name	vtun
-%define version	2.9.90
+%define version	2.9.91
 %define release	1
 
 # expansion of the previous part.
@@ -167,6 +167,11 @@ sbin/insserv etc/init.d/vtund
 %endif
 
 %changelog
+* Fri Aug 27 2004 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.9.91-1
+- xinetd prototype file
+- Nickolai 'kolya' Zeldovich's mlockall() patch
+- Added upper time bound to packet-based resync to reduce resync delay
+
 * Tue Aug  3 2004 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.9.90-2
 - incorporation of some of PLD fixes
 - move to more macros and less if/thens
