@@ -52,7 +52,7 @@ BuildRequires:	libz-devel
 %endif
 
 # Mandrake has funny devel package names that are hard to predict
-%if %( rpm -q mandrake-release >/dev/null 2>/dev/null && echo 0 || echo 1 )
+%if %( rpm -q mandrake-release >/dev/null 2>/dev/null && echo 1 || echo 0 )
 %{!?_without_ssl:BuildRequires: libopenssl0-devel }
 %else
 %{!?_without_ssl:BuildRequires:	openssl-devel }
