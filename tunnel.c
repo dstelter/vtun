@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: tunnel.c,v 1.1.1.2 2000/03/28 17:19:39 maxk Exp $
+ * $Id: tunnel.c,v 1.5.2.1 2000/09/08 04:00:07 maxk Exp $
  */ 
 
 #include "config.h"
@@ -62,41 +62,48 @@ int (*dev_read)(int fd, char *buf, int len);
 int (*proto_write)(int fd, char *buf, int len);
 int (*proto_read)(int fd, char *buf);
 
+/* Initialize and start the tunnel.
+   Returns:
+      -1 - critical error
+      0  - normal close or noncritical error 
+*/
+   
 int tunnel(struct vtun_host *host)
 {
-     int fd[2], null_fd, pid,opt;
-     char dev[12]="";
+     int null_fd, pid, opt;
+     int fd[2]={-1, -1};
+     char dev[VTUN_DEV_LEN]="";
 
      /* Initialize device. */
+     if( host->dev ){
+        strncpy(dev, host->dev, VTUN_DEV_LEN);
+	dev[VTUN_DEV_LEN-1]='\0';
+     }
      switch( host->flags & VTUN_TYPE_MASK ){
 	case VTUN_TTY:
-	   if( (fd[0]=pty_alloc(dev)) < 0){
-	      syslog(LOG_ERR,"Can't allocate pseudo tty");
+	   if( (fd[0]=pty_alloc(dev)) < 0 ){
+	      syslog(LOG_ERR,"Can't allocate pseudo tty. %s(%d)", strerror(errno), errno);
 	      return -1;
            }
 	   break;
 
 	case VTUN_PIPE:
-	   if( pipe_alloc(fd) < 0){
- 	      syslog(LOG_ERR,"Can't create pipe");
+	   if( pipe_alloc(fd) < 0 ){
+ 	      syslog(LOG_ERR,"Can't create pipe. %s(%d)", strerror(errno), errno);
    	      return -1;
 	   }
 	   break;
 
 	case VTUN_ETHER:
-	   if( host->dev )
-	      strcpy(dev,host->dev); 
-	   if( (fd[0]=tap_alloc(dev)) < 0){
- 	      syslog(LOG_ERR,"Can't allocate tap device");
+	   if( (fd[0]=tap_alloc(dev)) < 0 ){
+ 	      syslog(LOG_ERR,"Can't allocate tap device. %s(%d)", strerror(errno), errno);
    	      return -1;
 	   }
 	   break;
 
 	case VTUN_TUN:
-	   if( host->dev )
-	      strcpy(dev,host->dev); 
-	   if( (fd[0]=tun_alloc(dev)) < 0){
- 	      syslog(LOG_ERR,"Can't allocate tun device");
+	   if( (fd[0]=tun_alloc(dev)) < 0 ){
+ 	      syslog(LOG_ERR,"Can't allocate tun device. %s(%d)", strerror(errno), errno);
    	      return -1;
 	   }
 	   break;
@@ -120,7 +127,8 @@ int tunnel(struct vtun_host *host)
         case VTUN_UDP:
 	   if( (opt = udp_session(host, VTUN_TIMEOUT)) == -1){
 	      syslog(LOG_ERR,"Can't establish UDP session");
-	      return -1;
+	      close(fd[0]); close(fd[1]);
+	      return 0;
 	   } 	
 
  	   proto_write = udp_write;
@@ -132,14 +140,15 @@ int tunnel(struct vtun_host *host)
      switch( (pid=fork()) ){
 	case -1:
 	   syslog(LOG_ERR,"Couldn't fork()");
-	   return -1;
+	   close(fd[0]); close(fd[1]);
+	   return 0;
 	case 0:
      	   switch( host->flags & VTUN_TYPE_MASK ){
 	      case VTUN_TTY:
 	         /* Open pty slave (becomes controlling terminal) */
 	         if( (fd[1] = open(dev, O_RDWR)) < 0){
 	            syslog(LOG_ERR,"Couldn't open slave pty");
-	            return -1;
+	            exit(0);
 	         }
 		 /* Fall through */
 	      case VTUN_PIPE:
@@ -195,7 +204,6 @@ int tunnel(struct vtun_host *host)
   		 dev_write = tun_write; 
 	   	 break;
      	   }
-
 	   host->loc_fd = fd[0];
 	   opt = linkfd(host);
 
@@ -203,11 +211,10 @@ int tunnel(struct vtun_host *host)
 	   llist_trav(&host->down,run_cmd, &host->sopt);
 
 	   set_title("%s closing", host->host);
-	   /* Close all fds */
-	   close(host->loc_fd);
-	   close(host->rmt_fd);
 
-           free_sopt(&host->sopt);
+	   /* Close all fds */
+	   close(host->loc_fd); close(host->rmt_fd);
+	   close(fd[0]); close(fd[1]);	
 
 	   return opt;
      }

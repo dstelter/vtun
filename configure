@@ -1919,7 +1919,7 @@ echo "configure:1918: checking for SSL Library and Header files ... " >&5
     echo $ac_n "checking "for md5.h blowfish.h"""... $ac_c" 1>&6
 echo "configure:1921: checking "for md5.h blowfish.h"" >&5 
     ac_hdr_found=no
-    for p in $SSL_HDR_DIR /usr/include/ssl /usr/include/openssl /usr/include; do
+    for p in $SSL_HDR_DIR /usr/include/ssl /usr/include/openssl /usr/include /usr/local/include; do
 	
     ac_file_found=yes
     for f in md5.h blowfish.h; do
@@ -2007,7 +2007,7 @@ echo "configure:2006: checking for LZO Library and Header files ... " >&5
     echo $ac_n "checking "for lzo1x.h"""... $ac_c" 1>&6
 echo "configure:2009: checking "for lzo1x.h"" >&5 
     ac_hdr_found=no
-    for p in $LZO_HDR_DIR /usr/include/lzo /usr/include; do
+    for p in $LZO_HDR_DIR /usr/include/lzo /usr/include /usr/local/include; do
 	
     ac_file_found=yes
     for f in lzo1x.h; do
@@ -2184,22 +2184,98 @@ fi
 
 echo "$ac_t""" 1>&6
 
+OS_REL=`uname -r | tr -d 'A-Za-z\-\_\.'`
 case $host_os in
+	*linux*)
+	     OS_DIR="linux"
+	     for ac_hdr in linux/if_tun.h
+do
+ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
+echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
+echo "configure:2196: checking for $ac_hdr" >&5
+if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 2201 "configure"
+#include "confdefs.h"
+#include <$ac_hdr>
+EOF
+ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
+{ (eval echo configure:2206: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
+if test -z "$ac_err"; then
+  rm -rf conftest*
+  eval "ac_cv_header_$ac_safe=yes"
+else
+  echo "$ac_err" >&5
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_header_$ac_safe=no"
+fi
+rm -f conftest*
+fi
+if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+    ac_tr_hdr=HAVE_`echo $ac_hdr | sed 'y%abcdefghijklmnopqrstuvwxyz./-%ABCDEFGHIJKLMNOPQRSTUVWXYZ___%'`
+  cat >> confdefs.h <<EOF
+#define $ac_tr_hdr 1
+EOF
+ 
+else
+  echo "$ac_t""no" 1>&6
+fi
+done
+
+	     ;;
 	*solaris*)
 	     OS_DIR="svr4"
 	     ;;
-	*)
-	     OS_DIR="generic"
+	*freebsd*)
+	     if test "$OS_REL" -ge "40"; then 
+	        OS_DIR="freebsd"
+	     fi
+	     ;;
+	*openbsd*)
+	     if test "$OS_REL" -ge "25"; then 
+	        OS_DIR="openbsd"
+	     fi
 	     ;;
 esac	     
 
-echo "$ac_t""creating driver and protocol links ... " 1>&6
+    echo "$ac_t""creating driver and protocol links ... " 1>&6
 
-# Create links from OS dir
-./config.drivers link $OS_DIR
+    if test "$OS_DIR" != ""; then
+       
+    for i in `cat vtun.drivers`; do
+      if test -f $OS_DIR/$i -a ! -f $i; then
+         echo "$ac_t""linking $OS_DIR/$i  to  $i" 1>&6
+         ln -f -s $OS_DIR/$i $i
+      fi
+    done 
 
-# Create links from GENERIC dir
-./config.drivers link generic
+    fi
+    
+    for i in `cat vtun.drivers`; do
+      if test -f generic/$i -a ! -f $i; then
+         echo "$ac_t""linking generic/$i  to  $i" 1>&6
+         ln -f -s generic/$i $i
+      fi
+    done 
+
+
+
+echo "$ac_t""" 1>&6
+
+
+REL=`echo '$Name:  $' | tr -d '$: \-' | sed 's/^[A-Za-z]*//' | sed 's/\_/\./'`
+
+
+cat >> confdefs.h <<EOF
+#define VTUN_VER "$REL `date '+%m/%d/%Y'`"
+EOF
+
 
 trap '' 1 2 15
 cat > confcache <<\EOF
