@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: cfg_file.l,v 1.1.1.2 2000/03/28 17:18:30 maxk Exp $
+ * cfg_file.l,v 1.2 2001/09/20 06:26:41 talby Exp
  */ 
 
 #include "config.h"
@@ -27,7 +27,7 @@
 
 #include "vtun.h"
 
-#include "cfg_file.tab.h"
+#include "cfg_file.h"
 #include "cfg_kwords.h"
 
 /* static buffer for strings */
@@ -71,7 +71,8 @@ word		[A-Za-z0-9\-\_+=\!\$\#\%\&\*\^\@@\\\~\.]+
 wordnm		{word}:{num}
 kword		[A-Za-z0-9\_\-]+	
 comment		\#.*\n
-path		(\/{kword})+
+fname		[A-Za-z0-9\_\.\-]+	
+path		(\/{fname})+
 string		\".*\"
 
 %x OPTION PARAM  
