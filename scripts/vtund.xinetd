@@ -9,4 +9,5 @@ service unlisted
         server                  = /usr/local/sbin/vtund
         server_args             = -i
         disable                 = yes
+#	bind			= aa.bb.cc.dd
 }
