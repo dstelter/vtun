@@ -1,6 +1,6 @@
 %define name	vtun
 %define version	2.5
-%define release	4
+%define release	5
 
 #this part NEEDS to be expanded
 %define IsSuSE	%( [ -f /etc/SuSE-release ] && echo 1 || echo 0 )
@@ -26,7 +26,7 @@ Name: %{name}
 Version: %{version}
 Release: %{release}
 Copyright: GPL
-Group: Networking/Tunnels
+Group: System Environment/Daemons
 Url: http://vtun.sourceforge.net/
 Source: http://vtun.sourceforge.net/%{name}-%{version}.tar.gz
 Summary: Virtual tunnel over TCP/IP networks.
@@ -131,6 +131,9 @@ fi
 %endif
 
 %changelog
+* Sat Aug 17 2002 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.5-5
+- fix GROUP for amanda's genhdlist and Michael Van Donselaar
+
 * Tue Jun 5 2002 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.5-4
 - Deprecated redundant directory creation in install
 - More undisputed patches by Willems Luc for SuSE support
