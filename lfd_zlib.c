@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_zlib.c,v 1.1.1.2 2000/03/28 17:19:41 maxk Exp $
+ * $Id: lfd_zlib.c,v 1.1.1.2.2.1 2000/09/21 01:08:53 maxk Exp $
  */ 
 
 #include "config.h"
@@ -80,7 +80,9 @@ int zlib_free()
 {
      deflateEnd(&zd);
      inflateEnd(&zi);
-     free(zbuf);
+
+     free(zbuf); zbuf = NULL;
+
      return 0;
 }
 

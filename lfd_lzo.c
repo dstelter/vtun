@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_lzo.c,v 1.1.1.2 2000/03/28 17:19:34 maxk Exp $
+ * $Id: lfd_lzo.c,v 1.1.1.2.2.1 2000/09/21 01:08:53 maxk Exp $
  */ 
 
 #include "config.h"
@@ -89,8 +89,8 @@ int alloc_lzo(struct vtun_host *host)
 
 int free_lzo()
 {
-     lzo_free(zbuf);
-     lzo_free(wmem);
+     lzo_free(zbuf); zbuf = NULL;
+     lzo_free(wmem); wmem = NULL;
      return 0;
 }
 

@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: lfd_encrypt.c,v 1.2.2.1 2000/07/24 01:58:19 maxk Exp $
+ * $Id: lfd_encrypt.c,v 1.2.2.2 2000/09/21 01:08:53 maxk Exp $
  */ 
 
 /*
@@ -69,7 +69,7 @@ int alloc_encrypt(struct vtun_host *host)
 
 int free_encrypt()
 {
-   free(enc_buf);
+   free(enc_buf); enc_buf = NULL;
 
    return 0;
 }
