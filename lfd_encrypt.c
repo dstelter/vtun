@@ -72,9 +72,9 @@
 #include "vtun.h"
 #include "linkfd.h"
 #include "lib.h"
-#include "vtun_dh.h"
 #ifdef HAVE_SSL
 
+#include "vtun_dh.h"
 #include <md5.h>
 #include <blowfish.h>
 #include <dh.h>
