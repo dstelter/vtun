@@ -51,7 +51,7 @@ BuildRequires: 	automake
 
 # please check the FAQ for this question, and mail Bishop if there is
 # no FAQ entry.
-%define	_requires	tun libz-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel}}}}
+%define	_requires	tun libz-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel}
 
 # Caldera has funny zlib
 %define	_requires_ol	tun libz-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO:lzo-devel}
