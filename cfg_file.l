@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: cfg_file.l,v 1.1.1.2 2000/03/28 17:18:30 maxk Exp $
+ * $Id: cfg_file.l,v 1.1.1.2.2.1 2000/07/09 04:33:14 maxk Exp $
  */ 
 
 #include "config.h"
@@ -71,7 +71,8 @@ word		[A-Za-z0-9\-\_+=\!\$\#\%\&\*\^\@@\\\~\.]+
 wordnm		{word}:{num}
 kword		[A-Za-z0-9\_\-]+	
 comment		\#.*\n
-path		(\/{kword})+
+fname		[A-Za-z0-9\_\.\-]+	
+path		(\/{fname})+
 string		\".*\"
 
 %x OPTION PARAM  

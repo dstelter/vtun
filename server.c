@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: server.c,v 1.1.1.2 2000/03/28 17:18:39 maxk Exp $
+ * $Id: server.c,v 1.4.2.1 2000/07/09 04:33:14 maxk Exp $
  */ 
 
 #include "config.h"
@@ -50,27 +50,40 @@
 
 #include "compat.h"
 
-void connection(int sock, struct sockaddr_in *addr)
+void connection(int sock)
 {
+     struct sockaddr_in my_addr, cl_addr;
      struct vtun_host *host;
      struct sigaction sa;
      char *ip;
+     int opt;
 
-     ip = inet_ntoa(addr->sin_addr);
+     opt = sizeof(struct sockaddr_in);
+     if( getpeername(sock, (struct sockaddr *) &cl_addr, &opt) ){
+        syslog(LOG_ERR, "Can't get peer name");
+        exit(-1);
+     }
+     opt = sizeof(struct sockaddr_in);
+     if( getsockname(sock, (struct sockaddr *) &my_addr, &opt) < 0 ){
+        syslog(LOG_ERR,"Can't get local socket address");
+        exit(-1); 
+     }
+
+     ip = strdup(inet_ntoa(cl_addr.sin_addr));
 
      if( (host=auth_server(sock)) ){	
         sa.sa_handler=SIG_IGN;
 	sa.sa_flags=SA_NOCLDWAIT;;
         sigaction(SIGHUP,&sa,NULL);
 
-	syslog(LOG_INFO,"Session %s[%s] opened ", host->host, ip);
-
+	syslog(LOG_INFO,"Session %s[%s:%d] opened", host->host, ip, 
+					ntohs(cl_addr.sin_port) );
         host->rmt_fd = sock; 
 	
-        host->sopt.laddr = strdup("0.0.0.0");
+        host->sopt.laddr = strdup(inet_ntoa(my_addr.sin_addr));
         host->sopt.lport = vtun.svr_port;
         host->sopt.raddr = strdup(ip);
-	host->sopt.rport = ntohs(addr->sin_port);
+	host->sopt.rport = ntohs(cl_addr.sin_port);
 
 	/* Start tunnel */
 	tunnel(host);
@@ -80,7 +93,8 @@ void connection(int sock, struct sockaddr_in *addr)
 	/* Unlock host. (locked in auth_server) */	
 	unlock_host(host);
      } else {
-        syslog(LOG_INFO,"Denied connection from %s", ip);
+        syslog(LOG_INFO,"Denied connection from %s:%d", ip,
+					ntohs(cl_addr.sin_port) );
      }
      close(sock);
 
@@ -124,7 +138,7 @@ void listener(void)
 
 	switch( fork() ){
 	   case 0:
-	      connection(s1, &cl_addr);
+	      connection(s1);
 	      break;
 	   case -1:
 	      syslog(LOG_ERR, "Couldn't fork()");
@@ -137,9 +151,7 @@ void listener(void)
 
 void server(int sock)
 {
-     struct sockaddr_in addr;
      struct sigaction sa;
-     int opt;
 
      sa.sa_handler=SIG_IGN;
      sa.sa_flags=SA_NOCLDWAIT;;
@@ -147,8 +159,9 @@ void server(int sock)
      sigaction(SIGQUIT,&sa,NULL);
      sigaction(SIGCHLD,&sa,NULL);
      sigaction(SIGPIPE,&sa,NULL);
+     sigaction(SIGUSR1,&sa,NULL);
 
-     syslog(LOG_INFO,"VTUN server ver %s (%s)", VER,
+     syslog(LOG_INFO,"VTUN server ver %s (%s)", VTUN_VER,
 		vtun.svr_type == VTUN_INETD ? "inetd" : "stand" );
 
      switch( vtun.svr_type ){
@@ -156,12 +169,7 @@ void server(int sock)
 	   listener();
 	   break;
         case VTUN_INETD:
-	   opt = sizeof(addr);
-	   if( getpeername(sock, (struct sockaddr *) &addr, &opt) ){
-	      syslog(LOG_ERR, "Can't get peer name");
-	      break;
-	   }
-	   connection(sock, &addr);
+	   connection(sock);
 	   break;
      }    
 }
