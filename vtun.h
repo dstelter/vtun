@@ -17,14 +17,12 @@
  */
 
 /*
- * $Id: vtun.h,v 1.1.1.2 2000/03/28 17:18:38 maxk Exp $
+ * $Id: vtun.h,v 1.7.2.1 2000/09/14 14:57:20 maxk Exp $
  */ 
 #ifndef _VTUN_H
 #define _VTUN_H
 
 #include "llist.h"
-
-#define VER "2.1b4 03/21/2000"
 
 /* Default VTUN port */
 #define VTUN_PORT 5000
@@ -40,6 +38,9 @@
 
 /* Statistic interval in seconds */
 #define VTUN_STAT_IVAL  5*60  /* 5 min */
+
+/* Max lenght of device name */
+#define VTUN_DEV_LEN  20 
  
 /* End of configurable part */
 
@@ -129,6 +130,7 @@ extern llist host_list;
 #define VTUN_CLNT_MASK  0xf000
 
 #define VTUN_STAT	0x1000
+#define VTUN_PERSIST    0x2000
 
 /* Constants and flags for VTun protocol */
 #define VTUN_FRAME_SIZE     2048
@@ -150,8 +152,8 @@ extern llist host_list;
 
 /* Global options */
 struct vtun_opts {
-   int persist;
    int timeout;
+   int persist;
 
    char *cfg_file;
 

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: linkfd.c,v 1.1.1.2 2000/03/28 17:18:42 maxk Exp $
+ * $Id: linkfd.c,v 1.4.2.1 2000/09/14 14:57:20 maxk Exp $
  */
 
 #include "config.h"
@@ -207,7 +207,7 @@ int lfd_linker(void)
 
      if( !(buf = malloc(VTUN_FRAME_SIZE + VTUN_FRAME_OVERHEAD)) ){
 	syslog(LOG_ERR,"Can't allocate buffer for the linker"); 
-        return 1; 
+        return 0; 
      }
 
      maxfd = (fd1 > fd2 ? fd1 : fd2) + 1;
@@ -232,11 +232,13 @@ int lfd_linker(void)
 	if( !len ){
 	   /* We are idle, lets check connection */
 	   if( lfd_host->flags & VTUN_KEEP_ALIVE ){
-	      proto_write(fd1, NULL, VTUN_ECHO_REQ);
 	      if( ++idle > 3 ){
 	         syslog(LOG_INFO,"Session %s network timeout", lfd_host->host);
 		 break;	
 	      }
+	      /* Send ECHO request */
+	      if( proto_write(fd1, NULL, VTUN_ECHO_REQ) < 0 )
+		 break;
 	   }
 	   continue;
 	}	   
@@ -257,12 +259,13 @@ int lfd_linker(void)
 		 continue;
 	      }
 	      if( fl==VTUN_ECHO_REQ ){
-		 /* Reply on echo request */
-	 	 proto_write(fd1, NULL, VTUN_ECHO_REP);
+		 /* Send ECHO reply */
+	 	 if( proto_write(fd1, NULL, VTUN_ECHO_REP) < 0 )
+		    break;
 		 continue;
 	      }
    	      if( fl==VTUN_ECHO_REP ){
-		 /* Just ignore echo reply */
+		 /* Just ignore ECHO reply */
 		 continue;
 	      }
 	      if( fl==VTUN_CONN_CLOSE ){
@@ -274,8 +277,12 @@ int lfd_linker(void)
 	   lfd_host->stat.comp_in += len; 
 	   if( (len=lfd_run_up(len,buf,&out)) == -1 )
 	      break;	
-	   if( len && dev_write(fd2,out,len) < 0 )
-	      break; 
+	   if( len && dev_write(fd2,out,len) < 0 ){
+              if( errno != EAGAIN && errno != EINTR )
+                 break;
+              else
+                 continue;
+           }
 	   lfd_host->stat.byte_in += len; 
 	}
 
@@ -333,7 +340,7 @@ int linkfd(struct vtun_host *host)
 	lfd_add_mod(&lfd_shaper);
 
      if(lfd_alloc_mod(host))
-	return -1;
+	return 0;
 
      memset(&sa, 0, sizeof(sa));
      sa.sa_handler=sig_term;

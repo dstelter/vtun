@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: client.c,v 1.5.2.1 2000/07/24 01:58:19 maxk Exp $
+ * $Id: client.c,v 1.5.2.2 2000/09/14 14:57:20 maxk Exp $
  */ 
 
 #include "config.h"
@@ -76,7 +76,7 @@ void client(struct vtun_host *host)
      client_term = 0; reconnect = 0;
      while( !client_term ){ 
 	if( reconnect ){
-	   if( vtun.persist ){
+	   if( vtun.persist || (host->flags & VTUN_PERSIST) ){
 	      /* Persist mode. Sleep and reconnect. */
 	      sleep(5);
            } else {

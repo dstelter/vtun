@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: tap_dev.c,v 1.1.2.1 2000/09/08 04:00:08 maxk Exp $
+ * $Id: tap_dev.c,v 1.1.2.2 2000/09/14 14:57:20 maxk Exp $
  */ 
 
 #include "config.h"
@@ -68,7 +68,7 @@ int tap_alloc(char *dev)
     int fd, err;
 
     if( (fd = open("/dev/net/tun", O_RDWR)) < 0 )
-       return tun_alloc_old(dev);
+       return tap_alloc_old(dev);
 
     memset(&ifr, 0, sizeof(ifr));
     ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
@@ -85,7 +85,7 @@ int tap_alloc(char *dev)
 #else
 int tap_alloc(char *dev)
 {
-    return tun_alloc_old(dev);
+    return tap_alloc_old(dev);
 }
 #endif /* New driver support */
 
