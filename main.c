@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: main.c,v 1.1.1.2.2.7 2002/04/25 09:19:50 bergolth Exp $
+ * main.c,v 1.1.1.2.2.7 2002/04/25 09:19:50 bergolth Exp
  */ 
 #include "config.h"
 
@@ -84,7 +84,7 @@ int main(int argc, char *argv[], char *env[])
      default_host.loc_fd = default_host.rmt_fd = -1;
 
      /* Start logging to syslog and stderr */
-     vtun_openlog("vtund", LOG_PID | LOG_NDELAY | LOG_PERROR, LOG_DAEMON);
+     openlog("vtund", LOG_PID | LOG_NDELAY | LOG_PERROR, LOG_DAEMON);
 
      while( (opt=getopt(argc,argv,"isf:P:t:np")) != EOF ){
 	switch(opt){
