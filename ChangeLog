@@ -1,6 +1,8 @@
 ver 2.4:
-	 Fixed command path parsing. Fixed incorrect error handling in 
-	 read_n/write_n. Signal handling fix. Persist mode fixes. 
+	 Numerous stability fixes. Command path parsing fix.
+	 Fixed incorrect error handling in read_n/write_n. 
+	 Signal handling fix. Persist mode fixes.
+	 Memory handling fixes. New config options.
 	 Documentation update and spelling fixes.
 
 ver 2.3:
