@@ -1,6 +1,37 @@
+ver 2.4:
+	 Fixed command path parsing. Fixed incorrect error handling in 
+	 read_n/write_n. Singnal handling fix.  
+
+ver 2.3:
+	 Fixed incorrect error handling in UDP and TCP drivers. Makefile 
+	 improvements. RPM package fixes. Persist mode fixes. Fixed a 
+	 couple of memory and file descriptor leaks. Correct closing of 
+	 Solaris TUN device.
+	 Added man page for the configuration file. Documentation update. 
+	 Team members list update. 
+	 Upgrade is strongly recommended.
+
+ver 2.2:
+	 Added support for new OpenBSD tun driver. Fixes for generic tun 
+	 driver support. Configure extensions and fixes. Small cleanups. 
+	 Documentation update.
+
+ver 2.1:
+	 Final stable 2.1 release.
+         Small cleanups.
+
+ver 2.1b5:
+	 Fixed local address substitution for TCP connection.
+	 Fast, optimized udp_read function.
+         Scripts update.
+
 ver 2.1b4:
+         Bind UDP socket to the same address:port used for TCP connection. 
+         Fixed NOBUFS error handling for UDP sockets.
+	 Updated FreeBSD tun device support. 
 	 Removed host name size limitation.
 	 Parser and Makefile fixes.
+	 CVS source tree access.
 
 ver 2.1b3:
 	 Locking code rewrite, should fix race conditions. 
@@ -153,5 +184,3 @@ ver 1.1: A lot of enhancements and bug fixes. Traffic shaper functionality
 	 added. 
 
 ver 1.0: First revision. Just basic functionality implemented. 
-
-
