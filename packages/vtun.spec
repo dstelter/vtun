@@ -85,6 +85,8 @@ not require modification to any kernel parts.
 
 This package is built with%{!?_with_socks:out} SOCKS-support.
 %{?_without_lzo:This package is built without LZO support.}
+%{?_without_ssl:This package is built without OpenSSL support.  The VTun}
+%{?_without_ssl:Development Team does not support a no-SSL configuration.}
 
 %description -l pl
 VTun umo¿liwia tworzenie Wirtualnych Tunelu poprzez sieci TCP/IP wraz
@@ -101,6 +103,7 @@ protoko³ów szeregowych.
             --prefix=%{_exec_prefix} 	   \
 	    --sysconfdir=/etc 		   \
 	    --localstatedir=%{_var}	   \
+%{?_without_ssl: --disable-ssl} \
 %{?_without_lzo: --disable-lzo} \
 %{?_with_socks: --enable-socks}
 
