@@ -4,7 +4,6 @@
 
 #this part NEEDS to be expanded
 %define IsSuSE	%( [ -f /etc/SuSE-release ] && echo 1 || echo 0 )
-#define IsCOL	%( rpm -q OpenLinux >/dev/null 2>/dev/null && echo 1 || echo 0 )
 %if %{IsSuSE}
  %define rc_dir   /etc/init.d
  %define lock_dir /var/lock/subsys/vtunnel
@@ -39,7 +38,7 @@ Obsoletes: vppp
 
 %{!?NO_USE_LZO:Buildrequires: lzo-devel}
 Buildrequires: byacc, flex, openssl-devel
-%if %( rpm -q OpenLinux >/dev/null 2>/dev/null && echo 1 || echo 0 )
+%if %( rpm -q OpenLinux >/dev/null 2>/dev/null && echo 0 || echo 1 )
 BuildRequires: zlib-devel
 %else
 BuildRequires: libz-devel
