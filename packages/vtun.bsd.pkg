@@ -1,4 +1,4 @@
-@name vtun-2.0
+@name vtun-2.4b2
 
 @owner root
 @group wheel
@@ -6,12 +6,15 @@
 @cwd /usr/local
 
 @mode 644
-man/man8/vtund.8
 man/man8/vtun.8
+man/man8/vtund.8
+man/man5/vtund.conf.5
 
 @exec if [ -f %D/etc/vtund.conf ]; then echo "Saving vtund.conf to vtund.conf.backup";cp %D/etc/vtund.conf %D/etc/vtund.conf.backup; fi
 
 @exec install -c -d -m 755 -o root -g 0 %D/var/run
+@exec install -c -d -m 755 -o root -g 0 %D/var/log/vtund
+@exec install -c -d -m 755 -o root -g 0 %D/var/lock/vtund
 
 @unexec [ ! -f %D/etc/vtund.conf.backup ] && echo "Saving vtund.conf to vtund.conf.backup"; cp %D/etc/vtund.conf %D/etc/vtund.conf.backup;
 
