@@ -202,7 +202,7 @@ int lfd_linker(void)
 	struct timeval tv;
 	char *buf, *out;
 	fd_set fdset;
-	int bad_frames;
+	int bad_frames=0;
 	int maxfd, idle = 0;
 
 	if (!(buf = lfd_alloc(VTUN_FRAME_SIZE + VTUN_FRAME_OVERHEAD))) {
