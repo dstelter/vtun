@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: netlib.h,v 1.1.1.1 2000/03/28 17:19:45 maxk Exp $
+ * $Id: netlib.h,v 1.2.2.1 2000/09/21 18:40:26 maxk Exp $
  */ 
 #ifndef _VTUN_NETDEV_H
 #define _VTUN_NETDEV_H
@@ -33,9 +33,9 @@
 
 unsigned long getifaddr(char * ifname);
 int connect_t(int s, struct sockaddr *svr, time_t timeout); 
-int udp_session(struct vtun_host *host, time_t timeout); 
+int udp_session(struct vtun_host *host); 
 
-int local_addr(struct sockaddr_in *addr, struct vtun_host *host);
+int local_addr(struct sockaddr_in *addr, struct vtun_host *host, int con);
 int server_addr(struct sockaddr_in *addr, struct vtun_host *host);
 
 #endif /* _VTUN_NETDEV_H */

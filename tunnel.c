@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: tunnel.c,v 1.5.2.1 2000/09/08 04:00:07 maxk Exp $
+ * $Id: tunnel.c,v 1.5.2.2 2000/09/21 18:40:26 maxk Exp $
  */ 
 
 #include "config.h"
@@ -125,7 +125,7 @@ int tunnel(struct vtun_host *host)
 	   break;
 
         case VTUN_UDP:
-	   if( (opt = udp_session(host, VTUN_TIMEOUT)) == -1){
+	   if( (opt = udp_session(host)) == -1){
 	      syslog(LOG_ERR,"Can't establish UDP session");
 	      close(fd[0]); close(fd[1]);
 	      return 0;

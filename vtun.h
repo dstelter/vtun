@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: vtun.h,v 1.7.2.1 2000/09/14 14:57:20 maxk Exp $
+ * $Id: vtun.h,v 1.7.2.2 2000/09/21 18:40:26 maxk Exp $
  */ 
 #ifndef _VTUN_H
 #define _VTUN_H
@@ -89,6 +89,7 @@ struct vtun_host {
    llist down;
 
    int  flags;
+   int  timeout;
    int  spd_in;
    int  spd_out;
    int  zlevel;
@@ -152,8 +153,8 @@ extern llist host_list;
 
 /* Global options */
 struct vtun_opts {
-   int timeout;
-   int persist;
+   int  timeout;
+   int  persist;
 
    char *cfg_file;
 

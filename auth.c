@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: auth.c,v 1.1.1.2 2000/03/28 17:19:37 maxk Exp $
+ * $Id: auth.c,v 1.2.2.1 2000/09/21 18:40:26 maxk Exp $
  */ 
 
 /*
@@ -280,11 +280,11 @@ struct vtun_host * auth_server(int fd)
 
         set_title("authentication");
 
-	print_p(fd,"VTUN server ver %s\n",VER);
+	print_p(fd,"VTUN server ver %s\n",VTUN_VER);
 
 	stage = ST_HOST;
 
-	while( readn_t(fd, buf, VTUN_MESG_SIZE, VTUN_TIMEOUT) > 0 ){
+	while( readn_t(fd, buf, VTUN_MESG_SIZE, vtun.timeout) > 0 ){
 	   buf[sizeof(buf)-1]='\0';
 	   strtok(buf,"\r\n");
 
@@ -350,7 +350,7 @@ int auth_client(int fd, struct vtun_host *host)
 	
 	stage = ST_INIT;
 
-	while( readn_t(fd, buf, VTUN_MESG_SIZE, VTUN_TIMEOUT) > 0 ){
+	while( readn_t(fd, buf, VTUN_MESG_SIZE, vtun.timeout) > 0 ){
 	   buf[sizeof(buf)-1]='\0';
 	   switch( stage ){
 		case ST_INIT:

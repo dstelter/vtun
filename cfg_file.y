@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: cfg_file.y,v 1.1.1.2.2.2 2000/09/14 14:57:20 maxk Exp $
+ * $Id: cfg_file.y,v 1.1.1.2.2.3 2000/09/21 18:40:26 maxk Exp $
  */ 
 
 #include "config.h"
@@ -171,16 +171,19 @@ host_options:
 /* Host options. Must free strings first, because they 
  * could be strduped from default_host */
 host_option: '\n'
-  | K_PASSWD WORD 	{ 
-			  free(parse_host->passwd);  
-			  parse_host->passwd = strdup($2); 	
-			}	
-  | K_DEVICE WORD 	{ 
-			  free(parse_host->dev);  
-			  parse_host->dev = strdup($2); 
+  | K_PASSWD WORD 	{
+			  free(parse_host->passwd);
+			  parse_host->passwd = strdup($2);
+			}
+  | K_DEVICE WORD 	{
+			  free(parse_host->dev);
+			  parse_host->dev = strdup($2);
 			}	
   | K_MULTI NUM		{ 
-			  parse_host->multi = $2; 	
+			  parse_host->multi = $2;
+			}
+  | K_TIMEOUT NUM	{ 
+			  parse_host->timeout = $2;
 			}
   | K_SPEED NUM 	{ 
 			  if( $2 ){ 
@@ -200,22 +203,22 @@ host_option: '\n'
   | K_COMPRESS 		{
 			  parse_host->flags &= ~(VTUN_ZLIB | VTUN_LZO); 
 			}
-			compress	
+			compress
 
   | K_ENCRYPT NUM 	{  
-			  if( $2 ) 
-			     parse_host->flags |= VTUN_ENCRYPT; 	
-			  else	
-			     parse_host->flags &= ~VTUN_ENCRYPT; 	
+			  if( $2 )
+			     parse_host->flags |= VTUN_ENCRYPT;
+			  else
+			     parse_host->flags &= ~VTUN_ENCRYPT;
 			}
   | K_KALIVE NUM	{  
-			  if( $2 ) 
-			     parse_host->flags |= VTUN_KEEP_ALIVE; 	
-			  else	
-			     parse_host->flags &= ~VTUN_KEEP_ALIVE; 	
+			  if( $2 )
+			     parse_host->flags |= VTUN_KEEP_ALIVE;
+			  else
+			     parse_host->flags &= ~VTUN_KEEP_ALIVE;
 			}
-  | K_STAT NUM		{  
-			  if( $2 ) 
+  | K_STAT NUM		{
+			  if( $2 )
 			     parse_host->flags |= VTUN_STAT;
 			  else
 			     parse_host->flags &= ~VTUN_STAT;
@@ -399,8 +402,8 @@ void *cp_cmd(void *d, void *u)
       return NULL;
    }
  
-   cmd_copy->prog=strdup(cmd->prog);
-   cmd_copy->args=strdup(cmd->args);
+   cmd_copy->prog = strdup(cmd->prog);
+   cmd_copy->args = strdup(cmd->args);
    cmd_copy->flags = cmd->flags;
    return cmd_copy;
 }

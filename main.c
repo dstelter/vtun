@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: main.c,v 1.1.1.2 2000/03/28 17:18:29 maxk Exp $
+ * $Id: main.c,v 1.1.1.2.2.1 2000/09/21 18:40:26 maxk Exp $
  */ 
 #include "config.h"
 
@@ -62,7 +62,7 @@ int main(int argc, char *argv[], char *env[])
      vtun.persist = -1;
      vtun.timeout = -1;
 	
-     /* Dup strings because parser will try to free them */	
+     /* Dup strings because parser will try to free them */
      vtun.ppp   = strdup("/usr/sbin/pppd");
      vtun.ifcfg = strdup("/sbin/ifconfig");
      vtun.route = strdup("/sbin/route");
@@ -74,8 +74,9 @@ int main(int argc, char *argv[], char *env[])
 
      /* Initialize default host options */
      memset(&default_host, 0, sizeof(default_host));
-     default_host.flags = VTUN_TTY | VTUN_TCP; 
-     default_host.multi = VTUN_MULTI_ALLOW;
+     default_host.flags   = VTUN_TTY | VTUN_TCP;
+     default_host.multi   = VTUN_MULTI_ALLOW;
+     default_host.timeout = VTUN_CONNECT_TIMEOUT;
 
      /* Start logging to syslog and stderr */
      openlog("vtund", LOG_PID | LOG_NDELAY | LOG_PERROR, LOG_DAEMON);
@@ -131,9 +132,9 @@ int main(int argc, char *argv[], char *env[])
      if(vtun.svr_port == -1)
 	vtun.svr_port = VTUN_PORT;
      if(vtun.persist == -1)
-	vtun.persist = 0;		
+	vtun.persist = 0;
      if(vtun.timeout == -1)
-	vtun.timeout = VTUN_CONNECT_TIMEOUT;
+	vtun.timeout = VTUN_TIMEOUT;
 
      switch( vtun.svr_type ){
 	case -1:
