@@ -34,7 +34,7 @@ This package is build with%{!?USE_SOCKS:out} SOCKS-support.
 
 %prep
 
-%setup -n %{name}-%{version}
+%setup -n %{name}
 %configure			   \
             --prefix=/usr 	   \
 	    --sysconfdir=/etc 	   \
