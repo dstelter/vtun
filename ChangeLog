@@ -1,21 +1,26 @@
 
 3.0.0-pre2:
 	obsoleted linux/tap_dev (mjt)
+	fixed bug sf1062819 - multi killold parsing bug (dpf)	
+	changed rpm macros to support '--with socks' syntax (bc)
+	changed rpm macros to support '--without lzo' syntax (bc)
+	reworked rpm macro matrix for various distros (bc)
+	started on UNSUPPORTED rpmbuild option (bc)
 	
 3.0.0-pre1:
 	Implementation of Nickolai 'kolya' Zeldovich's mlockall() patch	(bc)
 	Some cleanup with respect to SSL on Apple (dpf)
 	Added upper time bound to packet-based resync to reduce resync
 	delay (dpf)
-	Added xinetd prototype file for vtund
+	Added xinetd prototype file for vtund (bc)
 	
 3.0.0-pre0:
-        (Dale Fountain)
-	Added multiple cipher support.
-	Added multiple cipher modes support.
-	Added support for different sized keys.
-	Re-sync ciphers when using non-ECB modes over a UDP connection.
-	Fixed Bug#908824 (persist=keep not re-applying routes)
+	Added multiple cipher support. (dpf)
+	Added multiple cipher modes support. (dpf)
+	Added support for different sized keys. (dpf)
+	Re-sync ciphers when using non-ECB modes over a UDP
+	connection. (dpf)
+	Fixed Bug#908824 (persist=keep not re-applying routes) (dpf)
 
 ver 2.6:
 	No changes;  just renumber.
