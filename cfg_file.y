@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: cfg_file.y,v 1.1.1.2 2000/03/28 17:18:33 maxk Exp $
+ * $Id: cfg_file.y,v 1.1.1.2.2.1 2000/06/20 18:41:02 maxk Exp $
  */ 
 
 #include "config.h"
@@ -197,7 +197,10 @@ host_option: '\n'
 			  } else 
 			     parse_host->flags &= ~VTUN_SHAPE;
 			}
-  | K_COMPRESS compress	
+  | K_COMPRESS 		{
+			  parse_host->flags &= ~(VTUN_ZLIB | VTUN_LZO); 
+			}
+			compress	
 
   | K_ENCRYPT NUM 	{  
 			  if( $2 ) 
@@ -246,8 +249,7 @@ compress:
 			  if( $1 ){  
       			     parse_host->flags |= VTUN_ZLIB; 
 			     parse_host->zlevel = $1;
-			  } else
-			     parse_host->flags &= ~(VTUN_ZLIB | VTUN_LZO); 
+			  }
 			}
   | DNUM		{
 			  parse_host->flags |= yylval.dnum.num1;
