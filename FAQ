@@ -137,6 +137,9 @@ work$ vtund -s home_tunnel_config
 ...
 home$ vtund home_tunnel_config localhost
 
+1.24 Is it possible to establish a vtun link from a client behind NAT or a firewall?
+Yes it is, but you need to use TCP protocol.
+
 2. Error Messages
 2.1 Why do I see no vtund log and error messages ?
 On several Unices, FreeBSD for example, syslog doesn't log message 
@@ -178,4 +181,4 @@ VTun passwords must be alpha characters or a mixture of alpha and
 numerical characters.
 
 If you have any unanswered question please send it to the mailing list 
-vtun@office.satix.net
+vtun-users@lists.sourceforge.net
