@@ -4,6 +4,7 @@
 
 #this part NEEDS to be expanded
 %define IsSuSE	%( [ -f /etc/SuSE-release ] && echo 1 || echo 0 )
+%define IsCOL	%( rpm -q OpenLinux > /dev/null 2>/dev/null && echo 1 || echo 0 )
 %if %{IsSuSE}
  %define rc_dir   /etc/init.d
  %define lock_dir /var/lock/subsys/vtunnel
@@ -35,8 +36,14 @@ Vendor: Maxim Krasnyansky <max_mk@yahoo.com>
 Packager: Bishop Clark (LC957) <bishop@platypus.bc.ca>
 BuildRoot: /var/tmp/%{name}-%{version}-build
 Obsoletes: vppp
+
 %{!?NO_USE_LZO:Buildrequires: lzo-devel}
-Buildrequires: byacc, flex, openssl-devel, zlib-devel
+Buildrequires: byacc, flex, openssl-devel
+%if %isCOL
+BuildRequires: zlib-devel
+%else
+BuildRequires: libz-devel
+%endif
 
 %description
 VTun provides the method for creating Virtual Tunnels over TCP/IP
