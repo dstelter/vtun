@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_shaper.c,v 1.1.1.2.2.2 2002/04/25 09:19:50 bergolth Exp $
+ * lfd_shaper.c,v 1.1.1.2.2.2 2002/04/25 09:19:50 bergolth Exp
  */
 
 #include "config.h"
@@ -114,8 +114,14 @@ int shaper_avail(void)
 	 * This is actually the hack to reduce CPU usage. 
 	 * Without this delay we will consume 100% CPU.
          */ 
+#ifdef HAVE_NANOSLEEP
         static struct timespec ts = {0,1000};
      	nanosleep(&ts,NULL);
+#elif defined(HAVE_USLEEP)
+		usleep(1);
+#else
+#error No sleep function available.
+#endif
 
 	/* Don't accept input */
 	return 0;

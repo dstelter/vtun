@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: udp_proto.c,v 1.5.2.1 2000/12/19 17:10:07 maxk Exp $
+ * udp_proto.c,v 1.5.2.1 2000/12/19 17:10:07 maxk Exp
  */ 
 
 #include "config.h"
@@ -49,7 +49,7 @@
 #include <netinet/ip.h>
 #endif
 
-#ifdef HAVE_NETINET_TCP_H
+#ifdef HAVE_NETINET_UDP_H
 #include <netinet/udp.h>
 #endif
 
