@@ -68,6 +68,7 @@ BuildRequires: 	automake
 %define	_buildreq_fc	zlib-devel %{!?_without_ssl:openssl-devel} %{!?NO_USE_LZO: lzo-devel}
 
 Requires:	%{_requires}
+BuildRequires:	%{_buildreq}
 
 %description
 VTun provides a method for creating Virtual Tunnels over TCP/IP
