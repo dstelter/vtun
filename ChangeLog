@@ -1,6 +1,12 @@
 
 3.0.0-pre0:
-	
+        (Dale Fountain)
+	Added multiple cipher support.
+	Added multiple cipher modes support.
+	Added support for different sized keys.
+	Re-sync ciphers when using non-ECB modes over a UDP connection.
+	Fixed Bug#908824 (persist=keep not re-applying routes)
+
 ver 2.6:
 	No changes;  just renumber.
 	
