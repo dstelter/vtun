@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lib.h,v 1.1.1.2 2000/03/28 17:18:47 maxk Exp $
+ * $Id: lib.h,v 1.2.2.1 2000/07/06 04:17:31 maxk Exp $
  */ 
 #ifndef _VTUN_LIB_H
 #define _VTUN_LIB_H
@@ -49,13 +49,13 @@ int  run_cmd(void *d, void *opt);
 void free_sopt(struct vtun_sopt *opt);
 
 /* Read exactly len bytes (Signal safe)*/
-extern inline int read_n(int fd, void *buf, int len)
+extern inline int read_n(int fd, char *buf, int len)
 {
 	register int t=0, w;
 
 	do {
 	  if( (w = read(fd, buf, len)) < 0 ){
-	     if( errno == EINTR && errno == EAGAIN )
+	     if( errno == EINTR || errno == EAGAIN )
  	        continue;
 	     return -1;
 	  }
@@ -68,13 +68,13 @@ extern inline int read_n(int fd, void *buf, int len)
 }   
 
 /* Write exactly len bytes (Signal safe)*/
-extern inline int write_n(int fd, void *buf, int len)
+extern inline int write_n(int fd, char *buf, int len)
 {
 	register int t=0, w;
 
 	do {
  	  if( (w = write(fd, buf, len)) < 0 ){
-	     if( errno == EINTR && errno == EAGAIN )
+	     if( errno == EINTR || errno == EAGAIN )
   	         continue;
 	     return -1;
 	  }
