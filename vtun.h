@@ -137,7 +137,13 @@ extern llist host_list;
 
 /* Cipher options */
 #define VTUN_ENC_BF128ECB	1
-#define VTUN_ENC_AES128ECB	2
+#define VTUN_ENC_BF128CBC	2
+#define VTUN_ENC_BF128CFB	3
+#define VTUN_ENC_BF128OFB	4
+#define VTUN_ENC_AES128ECB	5
+#define VTUN_ENC_AES128CBC	6
+#define VTUN_ENC_AES128CFB	7
+#define VTUN_ENC_AES128OFB	8
 
 /* Mask to drop the flags which will be supplied by the server */
 #define VTUN_CLNT_MASK  0xf000
