@@ -9,7 +9,7 @@
 # define variables here for older RPM versions.
 %define name	vtun
 %define version	2.9.91
-%define release	1.0.2
+%define release	2
 
 # expansion of the previous part.
 # get the distro mark (eg rh70)
@@ -172,6 +172,10 @@ sbin/insserv etc/init.d/vtund
 %endif
 
 %changelog
+* Wed Sep 14 2004 Bishop Clark (LC957) <bishop@platypus.bc.ca>	2.9.91-2
+- no change from 1.0.2, just bumping the package number to force a
+  rebuild.
+
 * Fri Aug 27 2004 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.9.91-1
 - xinetd prototype file
 - Nickolai 'kolya' Zeldovich's mlockall() patch
