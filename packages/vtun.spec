@@ -1,6 +1,6 @@
 %define name	vtun
 %define version	2.6
-%define release	1
+%define release	1.1
 
 #this part NEEDS to be expanded
 %define IsSuSE	%( [ -f /etc/SuSE-release ] && echo 1 || echo 0 )
@@ -39,7 +39,6 @@ BuildRequires:  autoconf
 BuildRequires:  automake
 
 %{!?NO_USE_LZO:Buildrequires: 	lzo-devel}
-%{!?_without_ssl:BuildRequires:	openssl-devel }
 BuildRequires: 	bison
 BuildRequires: 	flex
 BuildRequires: 	autoconf
@@ -50,6 +49,13 @@ BuildRequires: 	automake
 BuildRequires:	zlib-devel
 %else
 BuildRequires:	libz-devel
+%endif
+
+# Mandrake has funny devel package names that are hard to predict
+%if %( rpm -q mandrake-release >/dev/null 2>/dev/null && echo 0 || echo 1 )
+%{!?_without_ssl:BuildRequires: libopenssl0-devel }
+%else
+%{!?_without_ssl:BuildRequires:	openssl-devel }
 %endif
 
 %description
@@ -155,6 +161,9 @@ fi
 %endif
 
 %changelog
+* Sun Mar 23 2003 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.6-1.1
+- alter packaging to accomodate MDKs non-standard devel pkg names
+
 * Tue Mar 18 2003 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.6-1
 - new release
 
