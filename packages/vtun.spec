@@ -101,7 +101,7 @@ protoko³ów szeregowych.
 
 %install
 [ $RPM_BUILD_ROOT != / ] && rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT%{rc_dir}
+%__install -d $RPM_BUILD_ROOT%{rc_dir}
 
  if [ x%{IsSuSE} = x1 ]; then
 install scripts/vtund.rc.suse $RPM_BUILD_ROOT%{rc_dir}/vtund
@@ -115,6 +115,10 @@ make install SBIN_DIR=$RPM_BUILD_ROOT%{_sbindir} \
         VAR_DIR=$RPM_BUILD_ROOT%{_var} \
         LOCK_DIR=$RPM_BUILD_ROOT%{lock_dir} \
 	INSTALL_OWNER=
+
+%__install -d /etc/xinetd.d
+%__sed 's:/usr/local:%{_prefix}:' scripts/vtund.xinetd \
+	> $RPM_BUILD_ROOT/etc/xinetd.d/vtun
 
 if [ x%{IsSuSE} = x1 ]; then
 # SuSE RC.CONFIG templates
