@@ -1,25 +1,89 @@
-/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* config.h.in.  Generated automatically from configure.in by autoheader 2.13.  */
 
 /* Define to empty if the keyword does not work.  */
 #undef const
 
+/* Define if you don't have vprintf but do have _doprnt.  */
+#undef HAVE_DOPRNT
+
+/* Define if you have the strftime function.  */
+#undef HAVE_STRFTIME
+
+/* Define if you have <sys/wait.h> that is POSIX.1 compatible.  */
+#undef HAVE_SYS_WAIT_H
+
+/* Define if you have the vprintf function.  */
+#undef HAVE_VPRINTF
+
 /* Define as __inline if that's what the C compiler calls it.  */
 #undef inline
+
+/* Define to `unsigned' if <sys/types.h> doesn't define.  */
+#undef size_t
 
 /* Define if you have the ANSI C header files.  */
 #undef STDC_HEADERS
 
+/* Define if you can safely include both <sys/time.h> and <time.h>.  */
+#undef TIME_WITH_SYS_TIME
+
+/* Define if your <sys/time.h> declares struct tm.  */
+#undef TM_IN_SYS_TIME
+
+#undef HAVE_LZO
+#undef HAVE_SETPROC_TITLE
+#undef HAVE_SHAPER
+#undef HAVE_SSL
+#undef HAVE_ZLIB
+#undef VTUN_VER
+
 /* Define if you have the gettimeofday function.  */
 #undef HAVE_GETTIMEOFDAY
+
+/* Define if you have the select function.  */
+#undef HAVE_SELECT
+
+/* Define if you have the socket function.  */
+#undef HAVE_SOCKET
+
+/* Define if you have the strdup function.  */
+#undef HAVE_STRDUP
+
+/* Define if you have the strerror function.  */
+#undef HAVE_STRERROR
+
+/* Define if you have the strtol function.  */
+#undef HAVE_STRTOL
 
 /* Define if you have the <arpa/inet.h> header file.  */
 #undef HAVE_ARPA_INET_H
 
+/* Define if you have the <blowfish.h> header file.  */
+#undef HAVE_BLOWFISH_H
+
 /* Define if you have the <fcntl.h> header file.  */
 #undef HAVE_FCNTL_H
 
+/* Define if you have the <libutil.h> header file.  */
+#undef HAVE_LIBUTIL_H
+
+/* Define if you have the <linux/if_tun.h> header file.  */
+#undef HAVE_LINUX_IF_TUN_H
+
+/* Define if you have the <lzo1x.h> header file.  */
+#undef HAVE_LZO1X_H
+
+/* Define if you have the <md5.h> header file.  */
+#undef HAVE_MD5_H
+
+/* Define if you have the <netdb.h> header file.  */
+#undef HAVE_NETDB_H
+
 /* Define if you have the <netinet/in.h> header file.  */
 #undef HAVE_NETINET_IN_H
+
+/* Define if you have the <netinet/in_systm.h> header file.  */
+#undef HAVE_NETINET_IN_SYSTM_H
 
 /* Define if you have the <netinet/ip.h> header file.  */
 #undef HAVE_NETINET_IP_H
@@ -27,28 +91,35 @@
 /* Define if you have the <netinet/tcp.h> header file.  */
 #undef HAVE_NETINET_TCP_H
 
-/* Define if you have the <netinet/in_systm.h> header file.  */
-#undef HAVE_NETINET_IN_SYSTM_H
+/* Define if you have the <rand.h> header file.  */
+#undef HAVE_RAND_H
 
-/* Define if you have the <netdb.h> header file.  */
-#undef HAVE_NETDB_H
+/* Define if you have the <resolv.h> header file.  */
+#undef HAVE_RESOLV_H
 
 /* Define if you have the <sched.h> header file.  */
 #undef HAVE_SCHED_H
 
+/* Define if you have the <strings.h> header file.  */
+#undef HAVE_STRINGS_H
+
+/* Define if you have the <sys/ioctl.h> header file.  */
+#undef HAVE_SYS_IOCTL_H
+
 /* Define if you have the <sys/resource.h> header file.  */
 #undef HAVE_SYS_RESOURCE_H
+
+/* Define if you have the <sys/sockio.h> header file.  */
+#undef HAVE_SYS_SOCKIO_H
 
 /* Define if you have the <sys/time.h> header file.  */
 #undef HAVE_SYS_TIME_H
 
-/* Define if you have setproctitle. */
-#undef HAVE_SETPROC_TITLE
+/* Define if you have the <syslog.h> header file.  */
+#undef HAVE_SYSLOG_H
 
-#undef HAVE_LIBUTIL_H
+/* Define if you have the <unistd.h> header file.  */
+#undef HAVE_UNISTD_H
 
-/* Define if you have ZLIB */
-#undef HAVE_ZLIB
-
-/*Define if you have LZO */
-#undef HAVE_LZO
+/* Define if you have the <zlib.h> header file.  */
+#undef HAVE_ZLIB_H
