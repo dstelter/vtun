@@ -69,12 +69,12 @@ make install SBIN_DIR=$RPM_BUILD_ROOT/usr/sbin \
 %doc TODO vtund.conf 
 %attr(755,root,root) %config /etc/rc.d/init.d/vtund
 %attr(600,root,root) %config /etc/vtund.conf
-%attr(755,root,root) %{prefix}/sbin/vtund
+%attr(755,root,root) /usr/sbin/vtund
 %attr(755,root,root) %dir /var/log/vtund
 %attr(755,root,root) %dir /var/lock/vtund
-%{prefix}/man/man8/vtund.8*
-%{prefix}/man/man8/vtun.8*
-%{prefix}/man/man5/vtund.conf.5*
+/usr/man/man8/vtund.8*
+/usr/man/man8/vtun.8*
+/usr/man/man5/vtund.conf.5*
 
 %changelog
 * Mon May 29 2000 Michael Tokarev <mjt@tls.msk.ru>
