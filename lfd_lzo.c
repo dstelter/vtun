@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_lzo.c,v 1.1.1.2.2.5 2001/01/23 05:55:40 maxk Exp $
+ * $Id: lfd_lzo.c,v 1.1.1.2.2.6 2001/09/06 19:43:41 maxk Exp $
  */ 
 
 /* LZO compression module */
@@ -102,29 +102,29 @@ int free_lzo()
  */  
 int comp_lzo(int len, char *in, char **out)
 { 
-     int zlen = 0;    
+     unsigned int zlen = 0;    
      int err;
      
-     if( (err=lzo1x_compress(in,len,zbuf,&zlen,wmem)) != LZO_E_OK ){
+     if( (err=lzo1x_compress((void *)in,len,zbuf,&zlen,wmem)) != LZO_E_OK ){
         syslog(LOG_ERR,"Compress error %d",err);
         return -1;
      }
 
-     *out = zbuf;
+     *out = (void *)zbuf;
      return zlen;
 }
 
 int decomp_lzo(int len, char *in, char **out)
 {
-     int zlen = 0;     
+     unsigned int zlen = 0;
      int err;
 
-     if( (err=lzo1x_decompress(in,len,zbuf,&zlen,wmem)) != LZO_E_OK ){
+     if( (err=lzo1x_decompress((void *)in,len,zbuf,&zlen,wmem)) != LZO_E_OK ){
         syslog(LOG_ERR,"Decompress error %d",err);
         return -1;
      }
 
-     *out = zbuf;
+     *out = (void *) zbuf;
      return zlen;
 }
 

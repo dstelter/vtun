@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: auth.c,v 1.2.2.4 2001/06/07 15:35:12 maxk Exp $
+ * $Id: auth.c,v 1.2.2.5 2001/09/06 19:43:41 maxk Exp $
  */ 
 
 /*
@@ -275,7 +275,7 @@ char *cl2cs(char *chal)
 
 int cs2cl(char *str, char *chal)
 {
-     register unsigned char *ptr = str;
+     register char *ptr = str;
      register int i;
 
      if( !(ptr = strchr(str,'<')) ) 

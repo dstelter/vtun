@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_zlib.c,v 1.1.1.2.2.4 2001/01/23 05:55:40 maxk Exp $
+ * $Id: lfd_zlib.c,v 1.1.1.2.2.5 2001/09/06 19:43:41 maxk Exp $
  */ 
 
 /* ZLIB compression module */
@@ -38,7 +38,7 @@
 #include <zlib.h>
 
 static z_stream zi, zd; 
-static char *zbuf;
+static unsigned char *zbuf;
 static int zbuf_size = VTUN_FRAME_SIZE + 200;
 
 /* 
@@ -64,7 +64,7 @@ int zlib_alloc(struct vtun_host *host)
 	syslog(LOG_ERR,"Can't initialize decompressor");
 	return 1;
      }	
-     if( !(zbuf = lfd_alloc(zbuf_size)) ){
+     if( !(zbuf = (void *) lfd_alloc(zbuf_size)) ){
 	syslog(LOG_ERR,"Can't allocate buffer for the compressor");
 	return 1;
      }
@@ -109,9 +109,9 @@ int zlib_comp(int len, char *in, char **out)
      int oavail, olen = 0;    
      int err;
  
-     zd.next_in = in;
+     zd.next_in = (void *) in;
      zd.avail_in = len;
-     zd.next_out = zbuf;
+     zd.next_out = (void *) zbuf;
      zd.avail_out = zbuf_size;
     
      while(1) {
@@ -129,7 +129,7 @@ int zlib_comp(int len, char *in, char **out)
            return -1;
 	}
      }
-     *out = zbuf;
+     *out = (void *) zbuf;
      return olen;
 }
 
@@ -138,9 +138,9 @@ int zlib_decomp(int len, char *in, char **out)
      int oavail = 0, olen = 0;     
      int err;
 
-     zi.next_in = in;
+     zi.next_in = (void *) in;
      zi.avail_in = len;
-     zi.next_out = zbuf;
+     zi.next_out = (void *) zbuf;
      zi.avail_out = zbuf_size;
 
      while(1) {
@@ -157,7 +157,7 @@ int zlib_decomp(int len, char *in, char **out)
            return -1;
 	}
      }
-     *out = zbuf;
+     *out = (void *) zbuf;
      return olen;
 }
 

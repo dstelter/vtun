@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lib.c,v 1.1.1.2.2.4 2001/06/09 13:10:16 bergolth Exp $
+ * $Id: lib.c,v 1.1.1.2.2.5 2001/09/06 19:43:41 maxk Exp $
  */ 
 
 #include "config.h"
@@ -341,4 +341,4 @@ void free_sopt( struct vtun_sopt *opt )
 	free(opt->raddr);
         opt->raddr = NULL;
      }
-};
+}
