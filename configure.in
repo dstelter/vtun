@@ -60,6 +60,11 @@ AC_ARG_WITH(lzo-lib,
    LIBS="$LIBS -L$withval" 
 )
 
+AC_ARG_WITH(blowfish-headers,
+   --with-blowfish-headers=DIR     Blowfish Include files location,
+   BLOWFISH_HDR_DIR="$withval"
+)
+
 AC_ARG_WITH(socks-lib,
    --with-socks-lib=DIR         SOCKS Library location,
    LIBS="$LIBS -L$withval" 
