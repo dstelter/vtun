@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: server.c,v 1.4.2.3 2001/06/07 15:38:36 maxk Exp $
+ * $Id: server.c,v 1.4.2.4 2001/10/13 10:59:41 bergolth Exp $
  */ 
 
 #include "config.h"
@@ -140,6 +140,7 @@ void listener(void)
 
 	switch( fork() ){
 	   case 0:
+	      close(s);
 	      connection(s1);
 	      break;
 	   case -1:
