@@ -133,7 +133,9 @@ fi
 if test "$SSL" = "yes"; then
    AC_MSG_RESULT()
    AC_CHECKING( for md5 Library and Header files ... )
-    $SSL_HDR_DIR "" /usr/include /usr/include/ssl /usr/local/include /usr/local/ssl/include,
+AC_SEARCH_HEADERS(md5.h,
+    $SSL_HDR_DIR /usr/include/openssl "" /usr/include /usr/include/ssl /usr/local/include /usr/local/ssl/include,
+    ,
     AC_MSG_ERROR( SSL headers not found. )
    )
 fi
