@@ -39,7 +39,7 @@
 int pty_open(char *sl_name)
 {
     int  mr_fd;
-#ifdef HAVE_GETPT && HAVE_GRANTPT && HAVE_UNLOCKPT && HAVE_PTSNAME
+#if defined (HAVE_GETPT) && defined (HAVE_GRANTPT) && defined (HAVE_UNLOCKPT) && defined (HAVE_PTSNAME)
     char *ptyname;
 
     if((mr_fd=getpt()) < 0)
