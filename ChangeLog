@@ -1,9 +1,13 @@
 ver 2.4:
-	 Numerous stability fixes. Command path parsing fix.
+	 Numerous stability fixes.
+	 Improved TUN driver support for Solaris 8.
 	 Fixed incorrect error handling in read_n/write_n. 
 	 Signal handling fix. Persist mode fixes.
 	 Memory handling fixes. New config options.
+	 Command path parsing fix.
 	 Documentation update and spelling fixes.
+	 Update packages.
+	 Upgrade is strongly recommended.
 
 ver 2.3:
 	 Fixed incorrect error handling in UDP and TCP drivers. Makefile 
