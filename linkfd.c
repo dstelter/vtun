@@ -379,7 +379,8 @@ int linkfd(struct vtun_host *host)
 
      if( host->flags & VTUN_STAT ){
         alarm(0);
-	fclose(host->stat.file);
+	if (host->stat.file)
+	  fclose(host->stat.file);
      }
 
      lfd_free_mod();
