@@ -28,6 +28,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <syslog.h>
+#include <sys/mman.h>
 
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
@@ -86,8 +87,14 @@ int main(int argc, char *argv[], char *env[])
      /* Start logging to syslog and stderr */
      openlog("vtund", LOG_PID | LOG_NDELAY | LOG_PERROR, LOG_DAEMON);
 
-     while( (opt=getopt(argc,argv,"isf:P:t:np")) != EOF ){
+     while( (opt=getopt(argc,argv,"misf:P:t:np")) != EOF ){
 	switch(opt){
+	    case 'm':
+	        if (mlockall(MCL_CURRENT | MCL_FUTURE) < 0) {
+		    perror("Unable to mlockall()");
+		    exit(-1);
+	        }
+		break;
 	    case 'i':
 		vtun.svr_type = VTUN_INETD;
 	    case 's':
@@ -227,5 +234,5 @@ void usage(void)
      printf("\tvtund <-s> [-f file] [-P port]\n");
      printf("  Client:\n");
      printf("\tvtund [-f file] [-P port] [-L local address] "
-	    "[-p] [-t timeout] <host> <server adress>\n");
+	    "[-p] [-m] [-t timeout] <host> <server adress>\n");
 }
