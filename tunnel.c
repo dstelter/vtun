@@ -147,8 +147,6 @@ int tunnel(struct vtun_host *host)
 	   break;
      }
 
-     if( ! interface_already_open ){
-        /* do this only the first time when in persist = keep mode */
         switch( (pid=fork()) ){
 	   case -1:
 	      vtun_syslog(LOG_ERR,"Couldn't fork()");
@@ -157,6 +155,8 @@ int tunnel(struct vtun_host *host)
 	      close(fd[1]);
 	      return 0;
  	   case 0:
+           /* do this only the first time when in persist = keep mode */
+           if( ! interface_already_open ){
 	      switch( host->flags & VTUN_TYPE_MASK ){
 	         case VTUN_TTY:
 		    /* Open pty slave (becomes controlling terminal) */
@@ -180,14 +180,13 @@ int tunnel(struct vtun_host *host)
 	         case VTUN_TUN:
 		    break;
 	      }
+           }
+	   /* Run list of up commands */
+	   set_title("%s running up commands", host->host);
+	   llist_trav(&host->up, run_cmd, &host->sopt);
 
-	      /* Run list of up commands */
-	      set_title("%s running up commands", host->host);
-	      llist_trav(&host->up, run_cmd, &host->sopt);
-
-	      exit(0);           
+	   exit(0);           
 	}
-     }
 
      switch( host->flags & VTUN_TYPE_MASK ){
         case VTUN_TTY:
