@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: linkfd.h,v 1.1.1.2.2.2 2001/09/06 19:43:41 maxk Exp $
+ * linkfd.h,v 1.1.1.2.2.2 2001/09/06 19:43:41 maxk Exp
  */ 
 #ifndef _LINKFD_H
 #define _LINKFD_H
@@ -26,13 +26,15 @@
 #define LINKFD_PRIO -19
 
 /* Frame alloc/free */
-#define LINKFD_FRAME_RESERV 8
+//#define LINKFD_FRAME_RESERV 8
+#define LINKFD_FRAME_RESERV 128
+#define LINKFD_FRAME_APPEND 64
 
 static inline void * lfd_alloc(size_t size)
 {
      register char * buf;
 
-     size += LINKFD_FRAME_RESERV;
+     size += LINKFD_FRAME_RESERV + LINKFD_FRAME_APPEND;
 
      if( !(buf = malloc(size)) )
         return NULL;
