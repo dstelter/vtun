@@ -13,6 +13,7 @@
 	Added upper time bound to packet-based resync to reduce resync
 	delay (dpf)
 	Added xinetd prototype file for vtund (bc)
+	added missing --with-blowfish-headers=DIR option (Daniel Macks)
 	
 3.0.0-pre0:
 	Added multiple cipher support. (dpf)
