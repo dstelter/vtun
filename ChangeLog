@@ -1,3 +1,28 @@
+
+Future:
+	SigINT should be heeded (Michael Tokarov)
+
+ver 2.5.3:
+	$DESTDIR in makefile for packaging glee.
+
+ver 2.5.2:
+	Configure fixes, to ensure vtun will build under Mac OS/X (Kurt Werle)
+	exclude <rand.h> #inclusion under OS/X
+
+ver 2.5.1:
+	Cleanups, reformat code, Automake improvements (Greg)
+
+	Improvement of Special SuSE init files (Willems Luc)
+	Spec file improvements and testing under SuSE (Willems Luc)
+	PLD build patch from Arkadiusz Miskiewicz
+
+	re-execute up-commands on re-up under persist-keep (David Kimdon, Leo Bergolth)
+	prevent reentering syslog in signal handlers (Leo Bergolth)
+	fd leak in tunnel.c (David Kimdon, Leo Bergolth)
+	fix configure wrt openSSL and SASL to pick correct MD5.h (Leo Bergolth)
+	prevent closing non-existant stat file (Edan Ayal)
+	minor packaging improvements (Bishop Clark)
+
 ver 2.5:
 	 New config option to keep tun device always open
 	 iproute support
