@@ -67,7 +67,7 @@ Ryan Defelice <ryand@mobiletel.com>
 	development and testing
 
 Alexander Bergolth <leo@strike.wu-wien.ac.at>
-	Initial multiple connection handling and host lock functionalities. 
+	Initial multiple connection handling and host lock functionalities.
 	Improvements and fixes of source address option. Incorrect error 
 	handling fix. Ideas. Suggestions.
 
@@ -103,3 +103,13 @@ Steinar H. Gunderson <sgunderson@bigfoot.com>
 
 Yan Seiner <yan@cardinalengineering.com>
 	Testing. Bug reports. Suggestions.
+
+James Yonan <jim@funnybee.ntlp.com>
+	Encryption and other fixes. Suggestions.
+
+Greg Olszewski <noop@nwonknu.org>
+	Config parser and other fixes. Suggestions.
+
+Kevin P. Fleming <kevin@labsysgrp.com>
+	Makefile and config parser enhancement.
+	Other minor fixes and suggestions.
