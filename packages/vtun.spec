@@ -1,6 +1,6 @@
 %define name	vtun
-%define version	2.6
-%define release	1.1
+%define version	2.9.90
+%define release	1
 
 #this part NEEDS to be expanded
 %define IsSuSE	%( [ -f /etc/SuSE-release ] && echo 1 || echo 0 )
@@ -42,6 +42,10 @@ BuildRequires: 	bison
 BuildRequires: 	flex
 BuildRequires: 	autoconf
 BuildRequires: 	automake
+
+# please check the FAQ for this question, and mail Bishop if there is
+# no FAQ entry.
+Requires:	tun
 
 # Caldera has funny zlib
 # Mandrake has unpredictable devel package names that just make no
@@ -157,6 +161,9 @@ fi
 %endif
 
 %changelog
+* Sun Mar 14 2004 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.9.90-1
+- new 3.0.0 pre-release.  
+- better ciphers and a persist-keep bugfix.
 * Sun Mar 23 2003 Bishop Clark (LC957) <bishop@platypus.bc.ca> 2.6-1.1
 - alter packaging to accomodate MDKs non-standard devel pkg names
 
