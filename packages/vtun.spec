@@ -44,19 +44,22 @@ BuildRequires: 	flex
 BuildRequires: 	autoconf
 BuildRequires: 	automake
 
+%if %( rpm -q OpenLinux >/dev/null 2>/dev/null && echo 1 || echo 0 )
+
 # Caldera has funny zlib
-%if %( rpm -q OpenLinux >/dev/null 2>/dev/null && echo 0 || echo 1 )
-BuildRequires:	zlib-devel
-%else
-BuildRequires:	libz-devel
+BuildRequires:	libz-devel openssl-devel
+%elseif %( rpm -q mandrake-release >/dev/null 2>/dev/null && echo 1 || echo 0 )
+# Mandrake has funny devel package names that are hard to predict
+BuildRequires:	zlib-devel libopenssl0-devel
+%else 
+BuildRequires:	zlib-devel openssl-devel
 %endif
 
-# Mandrake has funny devel package names that are hard to predict
-%if %( rpm -q mandrake-release >/dev/null 2>/dev/null && echo 1 || echo 0 )
-%{!?_without_ssl:BuildRequires: libopenssl0-devel }
-%else
-%{!?_without_ssl:BuildRequires:	openssl-devel }
-%endif
+#if %( rpm -q mandrake-release >/dev/null 2>/dev/null && echo 1 || echo 0 )
+#{!?_without_ssl:BuildRequires: libopenssl0-devel }
+#else
+#{!?_without_ssl:BuildRequires:	openssl-devel }
+#endif
 
 %description
 VTun provides the method for creating Virtual Tunnels over TCP/IP
