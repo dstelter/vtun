@@ -1,4 +1,4 @@
-# $Id: vtun.spec,v 1.7.2.33.2.18 2005/02/23 21:41:54 mtbishop Exp $
+# vtun.spec,v 1.7.2.33.2.18 2005/02/23 21:41:54 mtbishop Exp
 
 # By default, builds without socks-support.
 # To build with socks-support, issue:
@@ -45,12 +45,11 @@ Packager: 	Bishop Clark (LC957) <bishop@platypus.bc.ca>
 BuildRoot: 	%{?_tmppath:%{_tmppath}}%{!?_tmppath:%{tmpdir}}/%{name}-%{version}-root-%(id -u -n)
 Obsoletes: 	vppp
 BuildRequires:  autoconf
-BuildRequires:  automake
-
 BuildRequires: 	bison
 BuildRequires: 	flex
 BuildRequires: 	autoconf
 BuildRequires: 	automake
+BuildRequires:  %{_bindir}/gcc
 
 # please check the FAQ for this question, and mail Bishop if there is
 # no FAQ entry.
