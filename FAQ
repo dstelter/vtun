@@ -175,7 +175,7 @@ You will have to download binary VTun package or recompile vtund with
 LZO support.
 
 2.8 Why do I get "expecting WORD at line xxx" error message ?
-This usually means that you are using password that contain only
+This usually means that you are using a password that contain only
 numerical characters.
 VTun passwords must be alpha characters or a mixture of alpha and
 numerical characters.
