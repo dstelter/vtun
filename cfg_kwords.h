@@ -41,6 +41,7 @@ struct kword cfg_keyword[] = {
    { "iface",    K_IFACE }, 
    { "timeout",	 K_TIMEOUT }, 
    { "passwd",   K_PASSWD }, 
+   { "password", K_PASSWD }, 
    { "program",  K_PROG }, 
    { "speed",    K_SPEED }, 
    { "compress", K_COMPRESS }, 
