@@ -49,6 +49,8 @@ BuildRequires: 	bison
 BuildRequires: 	flex
 BuildRequires: 	autoconf
 BuildRequires: 	automake
+
+# must specify like so to get the right package for gcc (eg ecgs)
 BuildRequires:  %{_bindir}/gcc
 
 # please check the FAQ for this question, and mail Bishop if there is
