@@ -17,7 +17,7 @@
  */
 
 /*
- * vtun.h,v 1.7.2.6 2001/12/29 17:01:01 bergolth Exp
+ * vtun.h,v 1.7.2.6.2.3.4.1 2005/06/02 13:28:54 mtbishop Exp
  */ 
 #ifndef _VTUN_H
 #define _VTUN_H
@@ -201,6 +201,7 @@ struct vtun_opts {
    char *iproute;	 /* iproute command */
 
    char *svr_name;       /* Server's host name */
+   char *svr_addr;       /* Server's address (string) */
    int  svr_port;	 /* Server's port */
    int  svr_type;	 /* Server mode */
    int  syslog; 	 /* Facility to log messages to syslog under */

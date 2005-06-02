@@ -17,7 +17,7 @@
  */
 
 /*
- * main.c,v 1.1.1.2.2.7 2002/04/25 09:19:50 bergolth Exp
+ * main.c,v 1.1.1.2.2.8.2.1.4.1 2005/06/02 13:28:54 mtbishop Exp
  */ 
 #include "config.h"
 
@@ -71,6 +71,7 @@ int main(int argc, char *argv[], char *env[])
      vtun.iproute = strdup("/sbin/ip");	
 
      vtun.svr_name = NULL;
+     vtun.svr_addr = NULL;
      vtun.svr_port = -1;
      vtun.svr_type = -1;
      vtun.syslog   = LOG_DAEMON;
@@ -87,7 +88,7 @@ int main(int argc, char *argv[], char *env[])
      /* Start logging to syslog and stderr */
      openlog("vtund", LOG_PID | LOG_NDELAY | LOG_PERROR, LOG_DAEMON);
 
-     while( (opt=getopt(argc,argv,"misf:P:t:np")) != EOF ){
+     while( (opt=getopt(argc,argv,"misf:P:L:t:np")) != EOF ){
 	switch(opt){
 	    case 'm':
 	        if (mlockall(MCL_CURRENT | MCL_FUTURE) < 0) {
@@ -99,6 +100,9 @@ int main(int argc, char *argv[], char *env[])
 		vtun.svr_type = VTUN_INETD;
 	    case 's':
 		svr = 1;
+		break;
+	    case 'L':
+		vtun.svr_addr = strdup(optarg);
 		break;
 	    case 'P':
 		vtun.svr_port = atoi(optarg);
@@ -231,8 +235,9 @@ void usage(void)
      printf("VTun ver %s\n", VTUN_VER);
      printf("Usage: \n");
      printf("  Server:\n");
-     printf("\tvtund <-s> [-f file] [-P port]\n");
+     printf("\tvtund <-s> [-f file] [-P port] [-L local address]\n");
      printf("  Client:\n");
-     printf("\tvtund [-f file] [-P port] [-L local address] "
-	    "[-p] [-m] [-t timeout] <host> <server adress>\n");
+     /* I don't think these work. I'm disabling the suggestion - bish 20050601*/
+     printf("\tvtund [-f file] " /* [-P port] [-L local address] */
+	    "[-p] [-m] [-t timeout] <host profile> <server address>\n");
 }

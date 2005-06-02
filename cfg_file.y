@@ -18,7 +18,7 @@
  */
 
 /*
- * cfg_file.y,v 1.1.1.2.2.12 2002/04/25 09:19:50 bergolth Exp
+ * cfg_file.y,v 1.1.1.2.2.13.2.1.4.1 2005/06/02 13:28:54 mtbishop Exp
  */ 
 
 #include "config.h"
@@ -144,6 +144,11 @@ option:  '\n'
   | K_PORT NUM 		{ 
 			  if(vtun.svr_port == -1)
 			     vtun.svr_port = $2;
+			} 
+
+  | K_IFACE STRING	{ 
+			  if(vtun.svr_addr == -1)
+			    vtun.svr_addr = strdup($2);
 			} 
 
   | K_TYPE NUM 		{ 

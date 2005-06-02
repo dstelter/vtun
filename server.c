@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: server.c,v 1.4.2.5 2002/04/25 09:19:50 bergolth Exp $
+ * server.c,v 1.4.2.5.6.1 2005/06/01 08:29:37 mtbishop Exp
  */ 
 
 #include "config.h"
@@ -112,6 +112,12 @@ void listener(void)
      my_addr.sin_family = AF_INET;
      my_addr.sin_addr.s_addr = INADDR_ANY;
      my_addr.sin_port = htons(vtun.svr_port);	
+     if (NULL != vtun.svr_addr) {  /* Set to NULL near main.c:74 so if not NULL, we know it changed */
+       /* currently we are ONLY accepting iface names for the addr.  Later we'll do IPs too. */
+       if ( !(my_addr.sin_addr.s_addr = getifaddr (vtun.svr_addr))) {
+	 vtun_syslog(LOG_ERR,"Can't resolve server interface: %s;  using INADDR_ANY", vtun.svr_addr);
+       }
+     }
 
      if( (s=socket(AF_INET,SOCK_STREAM,0))== -1 ){
 	vtun_syslog(LOG_ERR,"Can't create socket");
