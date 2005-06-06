@@ -50,6 +50,13 @@
 
 #include "compat.h"
 
+static volatile sig_atomic_t server_term;
+static void sig_term(int sig)
+{
+     vtun_syslog(LOG_INFO,"Terminated");
+     server_term = VTUN_SIG_TERM;
+}
+
 void connection(int sock)
 {
      struct sockaddr_in my_addr, cl_addr;
@@ -105,6 +112,7 @@ void connection(int sock)
 
 void listener(void)
 {
+     struct sigaction sa;
      struct sockaddr_in my_addr, cl_addr;
      int s, s1, opt;
 
@@ -137,11 +145,18 @@ void listener(void)
 	exit(1);
      }
 
+     memset(&sa,0,sizeof(sa));
+     sa.sa_flags = SA_NOCLDWAIT;
+     sa.sa_handler=sig_term;
+     sigaction(SIGTERM,&sa,NULL);
+     sigaction(SIGINT,&sa,NULL);
+     server_term = 0;
+
      set_title("waiting for connections on port %d", vtun.svr_port);
 
-     while(1){
+     while( (!server_term) || (server_term == VTUN_SIG_HUP) ){
         opt=sizeof(cl_addr);
-	if( (s1=accept(s,(struct sockaddr *)&cl_addr,&opt)) == -1 )
+	if( (s1=accept(s,(struct sockaddr *)&cl_addr,&opt)) < 0 )
 	   continue; 
 
 	switch( fork() ){
