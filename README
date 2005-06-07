@@ -16,7 +16,7 @@ Required packages:
   - OpenSSL encryption library 	http://www.openssl.org 
 
 Optional packages:
-  - Zlib compression library	http://www.zlib.net/
+  - Zlib compression library	http://www.gzip.org/zlib/
   - LZO compression library 	http://www.oberhumer.com/opensource/lzo/
   - SOCKS library:
 	 Socks5 by NEC (recommended)	http://www.socks.nec.com 
