@@ -99,7 +99,7 @@ protoko³ów szeregowych.
 
 
 %prep
-%setup -n %{name}
+%setup -n %{name}-%{version}
 %{__aclocal}
 %{__autoconf}
 %configure				   \
