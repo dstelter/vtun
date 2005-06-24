@@ -2,7 +2,7 @@ dnl
 dnl VTun - Virtual Tunnel over TCP/IP network.
 dnl Copyright (C) 1998-2005  Maxim Krasnyansky <max_mk@yahoo.com>
 dnl
-dnl $Id: configure.in,v 1.10.2.12.2.3 2005/06/24 23:31:08 mtbishop Exp $
+dnl $Id: configure.in,v 1.10.2.12.2.4 2005/06/24 23:41:36 mtbishop Exp $
 dnl
 dnl Process this file with autoconf to produce a configure script.
 dnl
@@ -240,7 +240,7 @@ AC_MSG_RESULT()
 
 dnl Build release name
 changequote(<,>)
-REL=`echo 'substr($Name,0)$' | tr -d '$: \-' | sed 's/^[A-Za-z]*//' | sed 's/\_/\./'`
+REL=`echo '$Name:  $' | tr -d '$: \-' | sed 's/^[A-Za-z]*//' | sed 's/\_/\./'`
 changequote([,])
 
 AC_DEFINE_UNQUOTED(VTUN_VER, "$REL `date '+%m/%d/%Y'`")
