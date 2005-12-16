@@ -90,7 +90,7 @@ void connection(int sock)
         host->rmt_fd = sock; 
 	
         host->sopt.laddr = strdup(inet_ntoa(my_addr.sin_addr));
-        host->sopt.lport = vtun.svr_port;
+        host->sopt.lport = vtun.bind_addr.port;
         host->sopt.raddr = strdup(ip);
 	host->sopt.rport = ntohs(cl_addr.sin_port);
 
@@ -118,13 +118,12 @@ void listener(void)
 
      memset(&my_addr, 0, sizeof(my_addr));
      my_addr.sin_family = AF_INET;
-     my_addr.sin_addr.s_addr = INADDR_ANY;
-     my_addr.sin_port = htons(vtun.svr_port);	
-     if (NULL != vtun.svr_addr) {  /* Set to NULL near main.c:74 so if not NULL, we know it changed */
-       /* currently we are ONLY accepting iface names for the addr.  Later we'll do IPs too. */
-       if ( !(my_addr.sin_addr.s_addr = getifaddr (vtun.svr_addr))) {
-	 vtun_syslog(LOG_ERR,"Can't resolve server interface: %s;  using INADDR_ANY", vtun.svr_addr);
-       }
+
+     /* Set listen address */
+     if( generic_addr(&my_addr, &vtun.bind_addr) < 0)
+     {
+        vtun_syslog(LOG_ERR, "Can't fill in listen socket");
+        exit(1);
      }
 
      if( (s=socket(AF_INET,SOCK_STREAM,0))== -1 ){
@@ -152,7 +151,7 @@ void listener(void)
      sigaction(SIGINT,&sa,NULL);
      server_term = 0;
 
-     set_title("waiting for connections on port %d", vtun.svr_port);
+     set_title("waiting for connections on port %d", vtun.bind_addr.port);
 
      while( (!server_term) || (server_term == VTUN_SIG_HUP) ){
         opt=sizeof(cl_addr);
