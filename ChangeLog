@@ -8,6 +8,7 @@
 	started on UNSUPPORTED rpmbuild option (bc)
 	Fixed Bug#1176343 SIGINT kills foreground server process (bc)
 	Added RFE#936523 Bind VTun Server to Specific Interface (bc)
+	Completely Rewrote the Bind To Specific Interface (alan grow)
 	
 3.0.0-pre1:
 	Implementation of Nickolai 'kolya' Zeldovich's mlockall() patch	(bc)

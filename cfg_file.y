@@ -71,7 +71,7 @@ int yyerror(char *s);
 }
 %expect 20
 
-%token K_OPTIONS K_DEFAULT K_PORT K_PERSIST K_TIMEOUT
+%token K_OPTIONS K_DEFAULT K_PORT K_BINDADDR K_PERSIST K_TIMEOUT
 %token K_PASSWD K_PROG K_PPP K_SPEED K_IFCFG K_FWALL K_ROUTE K_DEVICE 
 %token K_MULTI K_SRCADDR K_IFACE K_ADDR
 %token K_TYPE K_PROT K_COMPRESS K_ENCRYPT K_KALIVE K_STAT
@@ -142,9 +142,11 @@ options:
 /* Don't override command line options */
 option:  '\n'
   | K_PORT NUM 		{ 
-			  if(vtun.svr_port == -1)
-			     vtun.svr_port = $2;
+			  if(vtun.bind_addr.port == -1)
+			     vtun.bind_addr.port = $2;
 			} 
+
+  | K_BINDADDR '{' bindaddr_option '}'
 
   | K_IFACE STRING	{ 
 			  if(vtun.svr_addr == -1)
@@ -187,6 +189,28 @@ option:  '\n'
 			}
 
   | K_SYSLOG  syslog_opt
+
+  | K_ERROR		{
+			  cfg_error("Unknown option '%s'",$1);
+			  YYABORT;
+			}
+  ;
+
+bindaddr_option: 
+  K_ADDR WORD		{
+			  vtun.bind_addr.name = strdup($2);
+			  vtun.bind_addr.type = VTUN_ADDR_NAME;
+			}
+
+  | K_IFACE WORD	{
+			  vtun.bind_addr.name = strdup($2);
+			  vtun.bind_addr.type = VTUN_ADDR_IFACE;
+			}
+
+  | K_IFACE STRING	{
+			  vtun.bind_addr.name = strdup($2);
+			  vtun.bind_addr.type = VTUN_ADDR_IFACE;
+			}
 
   | K_ERROR		{
 			  cfg_error("Unknown option '%s'",$1);

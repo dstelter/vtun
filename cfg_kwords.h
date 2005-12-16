@@ -36,6 +36,7 @@ struct kword cfg_keyword[] = {
    { "srcaddr",  K_SRCADDR }, 
    { "addr",  	 K_ADDR }, 
    { "iface",  	 K_IFACE }, 
+   { "bindaddr", K_BINDADDR },
    { "persist",	 K_PERSIST }, 
    { "multi",	 K_MULTI }, 
    { "iface",    K_IFACE }, 

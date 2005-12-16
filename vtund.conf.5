@@ -55,6 +55,23 @@ mode (\fBstand\fR), that is the default, or be invoked from
 server port number to listen on or connect to.
 By default, \fBvtund\fR(8) uses port 5000.
 
+.IP \fBbindaddr\ \fIlist\fR
+server listen address. Used to force vtund to bind to the specific
+address and port in server mode.  Format:
+.nf
+  \fBbindaddr\fR {
+   \fIoption \fIvalue\fR;
+  };
+.fi
+.IP
+\fBbindaddr\fR options:
+.RS
+.IP \fBiface\ \fIif_name\fR
+use interface address \fIif_name\fR as the bind address.
+.IP \fBaddr\ \fIaddr\fR
+bind address.  Can be either IP address or host name.
+.RE
+
 .IP \fBtimeout\ \fIseconds\fR
 General timeout.
 

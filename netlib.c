@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: netlib.c,v 1.7.2.4 2002/04/25 09:19:50 bergolth Exp $
+ * netlib.c,v 1.7.2.4 2002/04/25 09:19:50 bergolth Exp
  */ 
 
 #include "config.h"
@@ -207,7 +207,6 @@ int udp_session(struct vtun_host *host)
 /* Set local address */
 int local_addr(struct sockaddr_in *addr, struct vtun_host *host, int con)
 {
-     struct hostent * hent;
      int opt;
 
      if( con ){
@@ -218,31 +217,9 @@ int local_addr(struct sockaddr_in *addr, struct vtun_host *host, int con)
            return -1; 
         }
      } else {
-        memset(addr, 0, sizeof(struct sockaddr_in));
-        addr->sin_family = AF_INET;
-        switch( host->src_addr.type ){
-           case VTUN_ADDR_IFACE:
-              if( !( addr->sin_addr.s_addr = getifaddr(host->src_addr.name)) ){
-                 vtun_syslog(LOG_ERR,"Can't get address of interface %s", 
-					host->src_addr.name);
+        if (generic_addr(addr, &host->src_addr) < 0)
                  return -1;
               }
-	      break;
-           case VTUN_ADDR_NAME:
-              if( !(hent = gethostbyname(host->src_addr.name)) ){
-                 vtun_syslog(LOG_ERR,"Can't resolv local address %s", 
-					host->src_addr.name);
-                 return -1;
-              }
-              addr->sin_addr.s_addr = *(unsigned long *)hent->h_addr; 
-	      break;
-           default:
-              addr->sin_addr.s_addr = INADDR_ANY; 
-              break;
-        }
-     }
-     if( host->src_addr.port )	
-        addr->sin_port = htons(host->src_addr.port);
 
      host->sopt.laddr = strdup(inet_ntoa(addr->sin_addr));
 
@@ -255,7 +232,7 @@ int server_addr(struct sockaddr_in *addr, struct vtun_host *host)
 
      memset(addr,0,sizeof(struct sockaddr_in));
      addr->sin_family = AF_INET;
-     addr->sin_port = htons(vtun.svr_port);
+     addr->sin_port = htons(vtun.bind_addr.port);
 
      /* Lookup server's IP address.
       * We do it on every reconnect because server's IP 
@@ -268,7 +245,45 @@ int server_addr(struct sockaddr_in *addr, struct vtun_host *host)
      addr->sin_addr.s_addr = *(unsigned long *)hent->h_addr; 
 
      host->sopt.raddr = strdup(inet_ntoa(addr->sin_addr));
-     host->sopt.rport = vtun.svr_port;
+     host->sopt.rport = vtun.bind_addr.port;
+
+     return 0; 
+}
+
+/* Set address by interface name, ip address or hostname */
+int generic_addr(struct sockaddr_in *addr, struct vtun_addr *vaddr)
+{
+     struct hostent *hent;
+     memset(addr, 0, sizeof(struct sockaddr_in));
+  
+     addr->sin_family = AF_INET;
+  
+     switch (vaddr->type) {
+        case VTUN_ADDR_IFACE:
+	 if (!(addr->sin_addr.s_addr =
+	       getifaddr(vaddr->name))) {
+	    vtun_syslog(LOG_ERR,
+	                "Can't get address of interface %s",
+	                vaddr->name);
+	    return -1;
+	 }
+           break;
+        case VTUN_ADDR_NAME:
+	 if (!(hent = gethostbyname(vaddr->name))) {
+	    vtun_syslog(LOG_ERR,
+	                "Can't resolv local address %s",
+	                vaddr->name);
+	    return -1;
+           }
+	 addr->sin_addr.s_addr = *(unsigned long *) hent->h_addr;
+           break;
+        default:
+           addr->sin_addr.s_addr = INADDR_ANY;
+           break;
+     }
+  
+     if (vaddr->port)
+        addr->sin_port = htons(vaddr->port);
 
      return 0; 
 }

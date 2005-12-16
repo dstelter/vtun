@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: netlib.h,v 1.2.2.1 2000/09/21 18:40:26 maxk Exp $
+ * netlib.h,v 1.2.2.1 2000/09/21 18:40:26 maxk Exp
  */ 
 #ifndef _VTUN_NETDEV_H
 #define _VTUN_NETDEV_H
@@ -37,5 +37,6 @@ int udp_session(struct vtun_host *host);
 
 int local_addr(struct sockaddr_in *addr, struct vtun_host *host, int con);
 int server_addr(struct sockaddr_in *addr, struct vtun_host *host);
+int generic_addr(struct sockaddr_in *addr, struct vtun_addr *vaddr);
 
 #endif /* _VTUN_NETDEV_H */

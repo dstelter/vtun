@@ -72,7 +72,7 @@ int main(int argc, char *argv[], char *env[])
 
      vtun.svr_name = NULL;
      vtun.svr_addr = NULL;
-     vtun.svr_port = -1;
+     vtun.bind_addr.port = -1;
      vtun.svr_type = -1;
      vtun.syslog   = LOG_DAEMON;
 
@@ -105,7 +105,7 @@ int main(int argc, char *argv[], char *env[])
 		vtun.svr_addr = strdup(optarg);
 		break;
 	    case 'P':
-		vtun.svr_port = atoi(optarg);
+		vtun.bind_addr.port = atoi(optarg);
 		break;
 	    case 'f':
 		vtun.cfg_file = strdup(optarg);
@@ -151,8 +151,8 @@ int main(int argc, char *argv[], char *env[])
       * Now fill uninitialized fields of the options structure
       * with default values. 
       */ 
-     if(vtun.svr_port == -1)
-	vtun.svr_port = VTUN_PORT;
+     if(vtun.bind_addr.port == -1)
+	vtun.bind_addr.port = VTUN_PORT;
      if(vtun.persist == -1)
 	vtun.persist = 0;
      if(vtun.timeout == -1)
