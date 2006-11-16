@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: tun_dev.c,v 1.1.2.4.2.3 2005/02/23 21:33:26 mtbishop Exp $
+ * $Id: tun_dev.c,v 1.1.2.4.2.4 2006/11/16 04:04:49 mtbishop Exp $
  */ 
 
 #include "config.h"

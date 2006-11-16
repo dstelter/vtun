@@ -17,7 +17,7 @@
  */
 
 /*
- * server.c,v 1.4.2.5.6.1 2005/06/01 08:29:37 mtbishop Exp
+ * $Id: server.c,v 1.4.2.5.2.4 2006/11/16 04:03:53 mtbishop Exp $
  */ 
 
 #include "config.h"

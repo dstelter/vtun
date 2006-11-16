@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: compat.h,v 1.1.1.2 2000/03/28 17:19:39 maxk Exp $
+ * $Id: compat.h,v 1.1.1.2.6.1 2006/11/16 04:02:51 mtbishop Exp $
  */ 
 #ifndef _VTUN_COMPAT_H
 #define _VTUN_COMPAT_H

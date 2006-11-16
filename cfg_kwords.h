@@ -17,7 +17,7 @@
  */
 
 /*
- * cfg_kwords.h,v 1.1.1.1.2.3.2.5.4.1 2005/06/02 13:28:54 mtbishop Exp
+ * $Id: cfg_kwords.h,v 1.1.1.1.2.3.2.8 2006/11/16 04:02:45 mtbishop Exp $
  */ 
 
 extern int lineno;

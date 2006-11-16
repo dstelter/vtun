@@ -17,7 +17,7 @@
  */
 
 /*
- * linkfd.c,v 1.4.2.11 2002/04/25 09:19:50 bergolth Exp
+ * $Id: linkfd.c,v 1.4.2.15.2.2 2006/11/16 04:03:23 mtbishop Exp $
  */
 
 #include "config.h"

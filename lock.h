@@ -17,8 +17,9 @@
  */
 
 /*
- * $Id: lock.h,v 1.1.1.1 2000/03/28 17:19:44 maxk Exp $
+ * $Id: lock.h,v 1.1.1.1.6.1 2006/11/16 04:03:38 mtbishop Exp $
  */ 
+
 #ifndef _VTUN_LOCK_H
 #define _VTUN_LOCK_H
 

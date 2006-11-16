@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: auth.h,v 1.1.1.2 2000/03/28 17:19:39 maxk Exp $
+ * $Id: auth.h,v 1.1.1.2.6.1 2006/11/16 04:02:36 mtbishop Exp $
  */ 
 
 #define VTUN_CHAL_SIZE	 16	

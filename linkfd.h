@@ -17,8 +17,9 @@
  */
 
 /*
- * linkfd.h,v 1.1.1.2.2.2 2001/09/06 19:43:41 maxk Exp
+ * $Id: linkfd.h,v 1.1.1.2.2.2.2.3 2006/11/16 04:03:26 mtbishop Exp $
  */ 
+
 #ifndef _LINKFD_H
 #define _LINKFD_H
 

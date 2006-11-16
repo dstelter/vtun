@@ -18,7 +18,7 @@
  */
 
 /*
- * cfg_file.l,v 1.1.1.2.2.1 2000/07/09 04:33:14 maxk Exp
+ * $Id: cfg_file.l,v 1.1.1.2.2.1.2.2 2006/11/16 04:02:39 mtbishop Exp $
  */ 
 
 #include "config.h"

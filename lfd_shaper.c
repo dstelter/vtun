@@ -17,7 +17,7 @@
  */
 
 /*
- * lfd_shaper.c,v 1.1.1.2.2.2 2002/04/25 09:19:50 bergolth Exp
+ * $Id: lfd_shaper.c,v 1.1.1.2.2.4.2.1 2006/11/16 04:03:09 mtbishop Exp $
  */
 
 #include "config.h"

@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: vtun_socks.h,v 1.1.1.1 2000/03/28 17:19:47 maxk Exp $
+ * $Id: vtun_socks.h,v 1.1.1.1.6.1 2006/11/16 04:04:20 mtbishop Exp $
  */ 
 
 #ifndef _VTUN_SOCKS_H

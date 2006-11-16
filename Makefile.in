@@ -15,7 +15,7 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 #
-#   Makefile.in,v 1.6.2.1 2001/08/06 23:16:35 maxk Exp
+#   $Id: Makefile.in,v 1.6.2.4.2.1 2006/11/16 04:03:44 mtbishop Exp $
 #  
 CC = @CC@
 CFLAGS = @CFLAGS@ @CPPFLAGS@

@@ -17,7 +17,7 @@
  */
 
 /*
- * lock.c,v 1.1.1.1.2.1 2002/04/25 09:19:50 bergolth Exp
+ * $Id: lock.c,v 1.1.1.1.2.3.2.1 2006/11/16 04:03:35 mtbishop Exp $
  */ 
 
 #include "config.h"

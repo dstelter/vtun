@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: llist.c,v 1.1.1.2 2000/03/28 17:19:34 maxk Exp $
+ * $Id: llist.c,v 1.1.1.2.6.1 2006/11/16 04:03:29 mtbishop Exp $
  */ 
 
 #include <stdlib.h>

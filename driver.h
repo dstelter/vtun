@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: driver.h,v 1.1.1.1.2.1 2000/11/20 07:57:33 maxk Exp $
+ * $Id: driver.h,v 1.1.1.1.2.1.2.1 2006/11/16 04:02:57 mtbishop Exp $
  */ 
 #ifndef _DRIVER_H
 #define _DRIVER_H

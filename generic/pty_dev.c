@@ -17,7 +17,7 @@
  */
 
 /*
- * pty_dev.c,v 1.1.1.1.2.1 2000/11/20 07:57:33 maxk Exp
+ * $Id: pty_dev.c,v 1.1.1.1.2.3.2.1 2006/11/16 04:04:29 mtbishop Exp $
  */ 
 
 #include "config.h"

@@ -18,7 +18,7 @@
  */
 
 /*
- * cfg_file.y,v 1.1.1.2.2.13.2.1.4.1 2005/06/02 13:28:54 mtbishop Exp
+ * $Id: cfg_file.y,v 1.1.1.2.2.13.2.4 2006/11/16 04:02:42 mtbishop Exp $
  */ 
 
 #include "config.h"

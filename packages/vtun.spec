@@ -1,4 +1,4 @@
-# vtun.spec,v 1.7.2.33.2.18 2005/02/23 21:41:54 mtbishop Exp
+# $Id: vtun.spec,v 1.7.2.33.2.22 2006/11/16 04:04:55 mtbishop Exp $
 
 # By default, builds without socks-support.
 # To build with socks-support, issue:

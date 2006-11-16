@@ -17,7 +17,7 @@
  */
 
 /*
- * client.c,v 1.5.2.7 2002/04/25 09:19:50 bergolth Exp
+ * $Id: client.c,v 1.5.2.8.2.1 2006/11/16 04:02:48 mtbishop Exp $
  */ 
 
 #include "config.h"

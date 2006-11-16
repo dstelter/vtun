@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_lzo.c,v 1.1.1.2.2.7 2002/04/25 09:19:50 bergolth Exp $
+ * $Id: lfd_lzo.c,v 1.1.1.2.2.7.2.1 2006/11/16 04:03:00 mtbishop Exp $
  */ 
 
 /* LZO compression module */

@@ -18,7 +18,7 @@
  */
 
 /*
- * $Id: llist.h,v 1.1.1.2 2000/03/28 17:19:30 maxk Exp $
+ * $Id: llist.h,v 1.1.1.2.6.1 2006/11/16 04:03:32 mtbishop Exp $
  */ 
 
 #ifndef _VTUN_LLIST_H

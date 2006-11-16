@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: tcp_proto.c,v 1.4.2.3 2001/06/09 13:10:16 bergolth Exp $
+ * $Id: tcp_proto.c,v 1.4.2.3.2.1 2006/11/16 04:04:35 mtbishop Exp $
  */ 
 
 #include "config.h"
