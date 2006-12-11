@@ -2,7 +2,7 @@ dnl
 dnl VTun - Virtual Tunnel over TCP/IP network.
 dnl Copyright (C) 1998-2005  Maxim Krasnyansky <max_mk@yahoo.com>
 dnl
-dnl $Id: configure.in,v 1.10.2.12.2.5 2006/11/16 04:02:54 mtbishop Exp $
+dnl configure.in,v 1.10.2.12.2.5 2006/11/16 04:02:54 mtbishop Exp
 dnl
 dnl Process this file with autoconf to produce a configure script.
 dnl
@@ -119,20 +119,40 @@ if test "$ZLIB" = "yes"; then
    )
 fi
 
+dnl very servicable code borrowed heavily from openvpn.
 if test "$LZO" = "yes"; then
+   LZOCHK=""
    AC_MSG_RESULT()
    AC_CHECKING( for LZO Library and Header files ... )
+   AC_SEARCH_HEADERS(lzo_asm.h,
+	$LZO_HDR_DIR /usr/include/lzo "" /usr/local/include,
+	LZOCHK="lzo2 lzo",
    AC_SEARCH_HEADERS(lzo1x.h, 
 	$LZO_HDR_DIR /usr/include/lzo "" /usr/local/include,
-        AC_CHECK_LIB(lzo, lzo1x_decompress,
+		LZOCHK="lzo",
+		AC_MSG_ERROR( LZO library not found. )
+		)
+	)
+
+   if test -n "$LZOCHK"; then
+      havelzo=0;
+      for I in $LZOCHK ; do
+         if test $havelzo = 0; then
+	    AC_CHECK_LIB($I, lzo1x_decompress,
 	    [
-	       LIBS="$LIBS -llzo"
+	          LIBS="$LIBS -l"$I
 	       AC_DEFINE(HAVE_LZO)
-	    ],
+	          havelzo=1
+	      ]
+	    )
+	 fi
+      done
+      if test $havelzo = 0; then
 	    AC_MSG_ERROR( LZO library not found. )
-	),
+      fi
+   else
         AC_MSG_ERROR( LZO headers not found. )
-   )
+   fi
 fi
 
 if test "$SSL" = "yes"; then
