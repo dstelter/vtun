@@ -1,4 +1,4 @@
-# $Id: vtun.spec,v 1.24.2.2 2006/12/11 14:09:34 mtbishop Exp $
+# $Id: vtun.spec,v 1.24.2.2.2.1 2007/03/27 08:04:39 mtbishop Exp $
 
 # By default, builds without socks-support.
 # To build with socks-support, issue:
@@ -38,6 +38,7 @@ License: 	GPL
 Group: 		System Environment/Daemons
 Url: 		http://vtun.sourceforge.net/
 Source: 	http://vtun.sourceforge.net/%{name}-%{version}.tar.gz
+Patch:		vtun-3.0.0-lzo2_util.patch
 Summary: 	Virtual tunnel over TCP/IP networks.
 Summary(pl):	Wirtualne tunele poprzez sieci TCP/IP
 Vendor: 	Maxim Krasnyansky <max_mk@yahoo.com>
@@ -55,22 +56,22 @@ BuildRequires:  %{_bindir}/gcc
 
 # please check the FAQ for this question, and mail Bishop if there is
 # no FAQ entry.
-%define	_buildreq_	zlib-devel %{!?_without_ssl:openssl-devel >= 0.9.7} %{!?_without_lzo: lzo-devel}
+%define	_buildreq_	zlib-devel %{!?_without_ssl:openssl-devel >= 0.9.7} %{?_with_lzo2:lzo2-devel} %{!?_with_lzo2:%{!?_without_lzo: lzo-devel}}
 %define	_requires_	tun
 
 # Caldera has funny zlib
-%define	_buildreq_ol	libz-devel %{!?_without_ssl:openssl-devel >= 0.9.7} %{!?_without_lzo:lzo-devel}
+%define	_buildreq_ol	libz-devel %{!?_without_ssl:openssl-devel >= 0.9.7} %{?_with_lzo2:lzo2-devel} %{!?_with_lzo2:%{!?_without_lzo: lzo-devel}}
 # Mandrake has unpredictable devel package names
-%define	_buildreq_mdk	zlib1-devel %{!?_without_ssl:libopenssl0-devel >= 0.9.7} %{!?_without_lzo: liblzo1-devel}
+%define	_buildreq_mdk	zlib1-devel %{!?_without_ssl:libopenssl0-devel >= 0.9.7} %{?_with_lzo2:liblzo2-devel} %{!?_with_lzo2:%{!?_without_lzo: liblzo1-devel}}
 
 # normally, NOT depending on the tun package encourages other apps to
 # clobber the modules.conf file. In this case, the reverse is true,
 # since FCx actually includes all the necessary entries.  So no tun.
 # We avoid a %null value by stating one redundantly.
 %define	_requires_fc	zlib
-%define	_buildreq_fc	zlib-devel %{!?_without_ssl:openssl-devel} %{!?_without_lzo: lzo-devel}
-%define	_requires_rhel4	%_requires_fc
-%define	_buildreq_rhel4	%_buildreq_fc
+%define	_buildreq_fc	zlib-devel %{!?_without_ssl:openssl-devel} %{?_with_lzo2:lzo2-devel} %{!?_with_lzo2:%{!?_without_lzo: lzo-devel}}
+%define	_requires_rhel	%_requires_fc
+%define	_buildreq_rhel	%_buildreq_fc
 
 Requires:	%{_requires}
 BuildRequires:	%{_buildreq}
@@ -100,6 +101,7 @@ protoko³ów szeregowych.
 
 %prep
 %setup -n %{name}-%{version}
+%patch -p1
 %{__aclocal}
 %{__autoconf}
 %configure				   \
