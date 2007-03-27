@@ -42,7 +42,6 @@ License: 	GPL
 Group: 		System Environment/Daemons
 Url: 		http://vtun.sourceforge.net/
 Source: 	http://vtun.sourceforge.net/%{name}-%{version}.tar.gz
-Patch:		vtun-3.0.0-lzo2_util.patch
 Summary: 	Virtual tunnel over TCP/IP networks.
 Summary(pl):	Wirtualne tunele poprzez sieci TCP/IP
 Vendor: 	Maxim Krasnyansky <max_mk@yahoo.com>
@@ -105,7 +104,6 @@ protoko³ów szeregowych.
 
 %prep
 %setup -n %{name}-%{version}
-%patch -p1
 %{__aclocal}
 %{__autoconf}
 %configure				   \
