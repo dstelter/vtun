@@ -1,16 +1,20 @@
-# $Id: vtun.spec,v 1.24.2.2.2.1 2007/03/27 08:04:39 mtbishop Exp $
+# vtun.spec,v 1.24.2.2.2.1 2007/03/27 08:04:39 mtbishop Exp
 
 # By default, builds without socks-support.
 # To build with socks-support, issue:
 #   rpm --define "_with_socks yes" ...
 
-# By default, builds with LZO support (available for any RPM system)
+# By default, builds with LZO 1 support (available for any RPM system)
 # To disable LZO, issue:
 #   rpm --define "_without_lzo yes" ...
+# 
+# Enabling LZO2 only fixes the RPM builddeps, so far; configure still
+# exercises some license.
+#   rpm --with lzo2
 
 # define variables here for older RPM versions.
 %define name	vtun
-%define version	3.0.0
+%define version	3.0.1
 %define release	1
 
 # expansion of the previous part.
@@ -187,6 +191,9 @@ sbin/insserv etc/init.d/vtund
 
 #date +"%a %b %d %Y"
 %changelog
+* Tue Mar 27 2007 Bishop Clark (LC957) <bishop@platypus.bc.ca>	3.0.1-1
+- new code drop (more LZO2 work)
+
 * Mon Dec 11 2006 Bishop Clark (LC957) <bishop@platypus.bc.ca>	3.0.0-1
 - new code drop
 - s/Copyright/License/, deprecated parameter.
