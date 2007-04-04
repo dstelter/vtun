@@ -76,6 +76,11 @@ BuildRequires:  %{_bindir}/gcc
 %define	_requires_rhel	%_requires_fc
 %define	_buildreq_rhel	%_buildreq_fc
 
+# SuSE doesn't permit lzo and lzo2 to be installed simultaneously so
+# we do not need to care so much.
+%define	_buildreq_suse	zlib-devel %{!?_without_ssl:openssl-devel >= 0.9.7} %{!?_without_lzo: lzo-devel}
+%define	_requires_suse	zlib %{!?_without_lzo: lzo}
+
 Requires:	%{_requires}
 BuildRequires:	%{_buildreq}
 
