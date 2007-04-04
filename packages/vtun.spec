@@ -184,10 +184,10 @@ sbin/insserv etc/init.d/vtund
 %attr(755,root,root) %dir %{log_dir}
 %attr(755,root,root) %dir %{lock_dir}
 %{_mandir}/man8/vtund.8*
-#%{_mandir}/man8/vtun.8*
 %{_mandir}/man5/vtund.conf.5*
 /etc/xinetd.d/vtun
 %if "%_dis" == "suse"
+%{_mandir}/man8/vtun.8*
 %attr(755,root,root) %{_sbindir}/rcvtund
 /var/adm/fillup-templates/rc.config.vtund
 %endif
