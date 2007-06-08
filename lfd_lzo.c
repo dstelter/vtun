@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_lzo.c,v 1.1.1.2.2.7 2002/04/25 09:19:50 bergolth Exp $
+ * $Id: lfd_lzo.c,v 1.1.1.2.2.8 2007/06/08 09:18:41 mtbishop Exp $
  */ 
 
 /* LZO compression module */
@@ -36,6 +36,7 @@
 #ifdef HAVE_LZO
 
 #include "lzo1x.h"
+#include "lzoutil.h"
 
 static lzo_byte *zbuf;
 static lzo_voidp wmem;
