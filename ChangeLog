@@ -68,7 +68,7 @@ ver 2.5:
 	 Fixes to support both Linux TUN/TAP drivers.
 
 ver 2.5b1:
-	 Encryption fixes: improved challenge generation, padding check.
+	 Encryption fixes: improved challenge generation (jy), padding check.
 	 Config parser fixes. Don't allow empty passwords.
 	 New config option to specify syslog logging facility.
 	 Support for new Linux TUN/TAP driver.
