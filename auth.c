@@ -17,15 +17,12 @@
  */
 
 /*
- * $Id: auth.c,v 1.9.2.1.2.1 2007/08/21 03:46:30 mtbishop Exp $
+ * $Id: auth.c,v 1.9.2.1.2.2 2007/08/21 03:47:42 mtbishop Exp $
  */ 
 
 /*
  * Challenge based authentication. 
  * Thanx to Chris Todd<christ@insynq.com> for the good idea.
- *
- * Jim Yonan, 05/24/2001
- * 	gen_chal rewrite to use better random number generator 
  */ 
 
 #include "config.h"
