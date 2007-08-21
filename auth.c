@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: auth.c,v 1.9.2.1.2.2 2007/08/21 03:47:42 mtbishop Exp $
+ * $Id: auth.c,v 1.9.2.1.2.3 2007/08/21 04:02:48 mtbishop Exp $
  */ 
 
 /*
@@ -251,6 +251,9 @@ int cf2bf(char *str, struct vtun_host *host)
 		}
 		ptr = p;
 		break;
+	     case 'F':
+	        /* reserved for Feature transmit */
+	       break;
 	     case '>':
 	        return 1;
 	     default:
