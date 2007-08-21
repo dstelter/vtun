@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: auth.c,v 1.9.2.1.2.3 2007/08/21 04:02:48 mtbishop Exp $
+ * $Id: auth.c,v 1.9.2.1.2.4 2007/08/21 04:19:57 mtbishop Exp $
  */ 
 
 /*
@@ -188,6 +188,7 @@ int cf2bf(char *str, struct vtun_host *host)
      int s;
 
      if( (ptr = strchr(str,'<')) ){ 
+	vtun_syslog(LOG_DEBUG,"Remote Server sends %s.", ptr);
 	ptr++;
 	while(*ptr){  
 	   switch(*ptr++){
@@ -231,8 +232,10 @@ int cf2bf(char *str, struct vtun_host *host)
 	     case 'E':
 	        /* new form is 'E10', old form is 'E', so remove the
 		   ptr==p check */
-	        if((s = strtol(ptr,&p,10)) == ERANGE)
+		if((s = strtol(ptr,&p,10)) == ERANGE) {
+		   vtun_syslog(LOG_ERR,"Garbled encryption method.  Bailing out.");
 		   return 0;
+		}
 		host->flags |= VTUN_ENCRYPT;
 		if (0 == s) {
 		   host->cipher = VTUN_LEGACY_ENCRYPT;
