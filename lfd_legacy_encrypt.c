@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lfd_legacy_encrypt.c,v 1.1.2.1 2007/09/17 22:27:19 mtbishop Exp $
+ * $Id: lfd_legacy_encrypt.c,v 1.1.2.2 2007/09/17 22:43:09 mtbishop Exp $
  * Code added wholesale temporarily from lfd_encrypt 1.2.2.8
  */ 
 
@@ -64,26 +64,26 @@
 BF_KEY key;
 char * enc_buf;
 
-int alloc_encrypt(struct vtun_host *host)
+int alloc_legacy_encrypt(struct vtun_host *host)
 {
    if( !(enc_buf = lfd_alloc(ENC_BUF_SIZE)) ){
-      vtun_syslog(LOG_ERR,"Can't allocate buffer for encryptor");
+      vtun_syslog(LOG_ERR,"Can't allocate buffer for legacy encryptor");
       return -1;
    }
 
    BF_set_key(&key, ENC_KEY_SIZE, MD5(host->passwd,strlen(host->passwd),NULL));
 
-   vtun_syslog(LOG_INFO, "BlowFish encryption initialized");
+   vtun_syslog(LOG_INFO, "BlowFish legacy encryption initialized");
    return 0;
 }
 
-int free_encrypt()
+int free_legacy_encrypt()
 {
    lfd_free(enc_buf); enc_buf = NULL;
    return 0;
 }
 
-int encrypt_buf(int len, char *in, char **out)
+int legacy_encrypt_buf(int len, char *in, char **out)
 { 
    register int pad, p;
    register char *in_ptr = in, *out_ptr = enc_buf;
@@ -105,7 +105,7 @@ int encrypt_buf(int len, char *in, char **out)
    return len + 8;
 }
 
-int decrypt_buf(int len, char *in, char **out)
+int legacy_decrypt_buf(int len, char *in, char **out)
 {
    register int p;
 
@@ -114,7 +114,7 @@ int decrypt_buf(int len, char *in, char **out)
 
    p = *in;
    if (p < 1 || p > 8) {
-      vtun_syslog(LOG_INFO, "decrypt_buf: bad pad length");
+      vtun_syslog(LOG_INFO, "legacy_decrypt_buf: bad pad length");
       return 0;
    }
 
@@ -126,29 +126,29 @@ int decrypt_buf(int len, char *in, char **out)
 /* 
  * Module structure.
  */
-struct lfd_mod lfd_encrypt = {
+struct lfd_mod lfd_legacy_encrypt = {
      "Encryptor",
-     alloc_encrypt,
-     encrypt_buf,
+     alloc_legacy_encrypt,
+     legacy_encrypt_buf,
      NULL,
-     decrypt_buf,
+     legacy_decrypt_buf,
      NULL,
-     free_encrypt,
+     free_legacy_encrypt,
      NULL,
      NULL
 };
 
 #else  /* HAVE_SSL */
 
-int no_encrypt(struct vtun_host *host)
+int no_legacy_encrypt(struct vtun_host *host)
 {
      vtun_syslog(LOG_INFO, "Encryption is not supported");
      return -1;
 }
 
-struct lfd_mod lfd_encrypt = {
+struct lfd_mod lfd_legacy_encrypt = {
      "Encryptor",
-     no_encrypt, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+     no_legacy_encrypt, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
 
 #endif /* HAVE_SSL */
