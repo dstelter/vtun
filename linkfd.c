@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: linkfd.c,v 1.13.2.1 2007/06/29 05:26:19 mtbishop Exp $
+ * $Id: linkfd.c,v 1.13.2.1.2.1 2007/10/10 08:59:25 mtbishop Exp $
  */
 
 #include "config.h"
@@ -365,8 +365,12 @@ int linkfd(struct vtun_host *host)
 	lfd_add_mod(&lfd_lzo);
 
      if(host->flags & VTUN_ENCRYPT)
-	lfd_add_mod(&lfd_encrypt);
-
+       if(host->cipher == VTUN_LEGACY_ENCRYPT) {
+	 lfd_add_mod(&lfd_legacy_encrypt);
+       } else {
+	 lfd_add_mod(&lfd_encrypt);
+       }
+     
      if(host->flags & VTUN_SHAPE)
 	lfd_add_mod(&lfd_shaper);
 

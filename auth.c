@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: auth.c,v 1.9.2.1.2.4 2007/08/21 04:19:57 mtbishop Exp $
+ * $Id: auth.c,v 1.9.2.1.2.5 2007/10/10 08:59:23 mtbishop Exp $
  */ 
 
 /*
@@ -239,7 +239,7 @@ int cf2bf(char *str, struct vtun_host *host)
 		host->flags |= VTUN_ENCRYPT;
 		if (0 == s) {
 		   host->cipher = VTUN_LEGACY_ENCRYPT;
-		   vtun_syslog(LOG_INFO,"Remote server using older encryption.";
+		   vtun_syslog(LOG_INFO,"Remote server using older encryption.");
 		} else {
 		   host->cipher = s; 
 		}
