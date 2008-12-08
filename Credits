@@ -140,3 +140,9 @@ Alan Grow <agrow-at-thegotonerd.com>
 
 Hans Carlos Hoffman <hchs.de>
 	Inventive method for vtund3c->vtund2s encryption (rfe1685781)
+
+Serge B. Khvatov <xbatob@users.sf.net>
+	Makefile fix for LDFLAGS (rfe2149137)
+
+Yasuyuki <fryasu@yahoo.co.jp>
+	Mem leak in cfg_file.y (rfe2405993)
