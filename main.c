@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: main.c,v 1.9.2.2 2008/01/07 22:35:53 mtbishop Exp $
+ * $Id: main.c,v 1.9.2.2.4.1 2009/03/03 04:15:24 mtbishop Exp $
  */ 
 
 #include "config.h"
@@ -132,6 +132,8 @@ int main(int argc, char *argv[], char *env[])
  	closelog();
  	openlog("vtund", LOG_PID|LOG_NDELAY|LOG_PERROR, vtun.syslog);
      }
+
+	clear_nat_hack_flags(svr);
 
      if(!svr){
 	if( argc - optind < 2 ){

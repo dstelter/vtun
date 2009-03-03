@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: netlib.c,v 1.11.2.2 2008/01/07 22:35:56 mtbishop Exp $
+ * $Id: netlib.c,v 1.11.2.2.4.1 2009/03/03 04:15:27 mtbishop Exp $
  */ 
 
 #include "config.h"
@@ -138,6 +138,7 @@ unsigned long getifaddr(char * ifname)
      return addr.sin_addr.s_addr;
 }
 
+int is_rmt_fd_connected=1; 
 /* 
  * Establish UDP session with host connected to fd(socket).
  * Returns connected UDP socket or -1 on error.
@@ -190,10 +191,16 @@ int udp_session(struct vtun_host *host)
      }
 
      saddr.sin_port = port;
+     if (VTUN_USE_NAT_HACK(host))
+     	is_rmt_fd_connected=0;
+	else {
      if( connect(s,(struct sockaddr *)&saddr,sizeof(saddr)) ){
         vtun_syslog(LOG_ERR,"Can't connect socket");
         return -1;
      }
+     is_rmt_fd_connected=1;
+	}
+     
      host->sopt.rport = htons(port);
 
      /* Close TCP socket and replace with UDP socket */	
