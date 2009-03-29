@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: main.c,v 1.9.2.2.4.1 2009/03/03 04:15:24 mtbishop Exp $
+ * $Id: main.c,v 1.9.2.2.4.2 2009/03/29 09:55:31 mtbishop Exp $
  */ 
 
 #include "config.h"
@@ -50,9 +50,12 @@ void usage(void);
 extern int optind,opterr,optopt;
 extern char *optarg;
 
+/* for the NATHack bit.  Is our UDP session connected? */
+int is_rmt_fd_connected=1; 
+
 int main(int argc, char *argv[], char *env[])
 {
-     int svr, daemon, sock, dofork, fd, opt;
+  int svr, daemon, sock, dofork, fd, opt;
      struct vtun_host *host = NULL;
      struct sigaction sa;
      char *hst;
