@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: pty_dev.c,v 1.4.2.2 2008/01/07 22:36:13 mtbishop Exp $
+ * $Id: pty_dev.c,v 1.4.2.2.14.1 2012/07/08 04:38:05 mtbishop Exp $
  */ 
 
 #include "config.h"
@@ -28,6 +28,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <syslog.h>
+
+#include <pty.h>
 
 #include "vtun.h"
 #include "lib.h"
@@ -55,31 +57,29 @@ int pty_open(char *sl_name)
 
 #else
 
-    char ptyname[] = "/dev/ptyXY";
-    char ch[] = "pqrstuvwxyz";
-    char digit[] = "0123456789abcdefghijklmnopqrstuv";
+    char *ptyname;
     int  l, m;
+    int master, slave;
 
-    /* This algorithm should work for almost all standard Unices */	
-    for(l=0; ch[l]; l++ ) {
-        for(m=0; digit[m]; m++ ) {
-	 	ptyname[8] = ch[l];
-		ptyname[9] = digit[m];
-		/* Open the master */
-		if( (mr_fd=open(ptyname, O_RDWR)) < 0 )
-	 	   continue;
+    /* This algorithm works for UNIX98 PTS */	
+
+    /* Open the master */
+    mr_fd = openpty(&master, &slave, ptyname, NULL, NULL);
+    if (mr_fd == -1)
+    {
+      printf("error open pty");
+      return -1;
+    }
+    else
+    {
 		/* Check the slave */
-		ptyname[5] = 't';
 		if( (access(ptyname, R_OK | W_OK)) < 0 ){
-		   close(mr_fd);
-		   ptyname[5] = 'p';
-		   continue;
+		   /* close(mr_fd); */
+		   return -1;
 		}
 		strcpy(sl_name,ptyname);
-		return mr_fd;
-	    }
-	}
-	return -1;
+		return master;
+   }
 #endif
 }
 
