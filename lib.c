@@ -17,7 +17,7 @@
  */
 
 /*
- * $Id: lib.c,v 1.9.2.2 2008/01/07 22:35:40 mtbishop Exp $
+ * $Id: lib.c,v 1.9.2.2.26.1 2012/08/26 20:02:41 mtbishop Exp $
  */ 
 
 #include "config.h"
@@ -185,6 +185,9 @@ char * subst_opt(char *str, struct vtun_sopt *opt)
 		   sprintf(buf,"%d",opt->rport);
                    optr=buf;
                    break;
+	        case 'h':
+		   optr=opt->host;
+		   break;
                 default:
                    sp++;
                    continue;
