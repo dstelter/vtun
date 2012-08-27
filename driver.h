@@ -17,14 +17,14 @@
  */
 
 /*
- * $Id: driver.h,v 1.4.2.2 2008/01/07 22:35:30 mtbishop Exp $
+ * $Id: driver.h,v 1.4.2.2.26.1 2012/08/27 03:11:28 mtbishop Exp $
  */ 
 #ifndef _DRIVER_H
 #define _DRIVER_H
 
 /* Definitions for device and protocol drivers 
  * Interface will be completely rewritten in 
- * version 3.0
+ * future versions.
  */
 
 extern int (*dev_write)(int fd, char *buf, int len);
